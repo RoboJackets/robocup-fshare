@@ -15,7 +15,8 @@ target_include_directories(rc-fshare PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include
 # -fPIC
 set_property(TARGET rc-fshare PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-add_executable(git-version-test
+# don't build unless `make git-version-test` explicitly called
+add_executable(git-version-test EXCLUDE_FROM_ALL
     "test/git_version_test.cpp")
 target_link_libraries(git-version-test rc-fshare)
 
