@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include <memory>
-#include "pid_tuner.hpp"
 
 class Pid {
 public:
@@ -16,12 +15,6 @@ public:
 
     /** clear any windup */
     void clearWindup();
-
-    // Pid Tuning Functions
-    void initializeTuner();
-    void startTunerCycle();
-    void runTuner();
-    bool endTunerCycle();
 
     float kp, ki, kd;
     float derivAlpha;
@@ -43,7 +36,4 @@ private:
     float _lastDeriv;
 
     std::vector<float> _oldErr{};
-
-    std::unique_ptr<PidTuner> _tuner;
-    void setFromTuner();
 };
