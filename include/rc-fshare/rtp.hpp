@@ -255,6 +255,7 @@ struct RobotStatusMessage {
     unsigned kickHealthy : 1;      // 0 = unhealthy, 1 = healthy
     unsigned fpgaStatus : 1;       // 0 = good, 1 = error
     int16_t encDeltas[4];          // encoder changes since last packet
+    int16_t buffer;                // ecnDeltas is getting overwritten, temporary fix?
 
     static constexpr size_t debug_data_length = 0;
     //    std::array<int16_t,debug_data_length> debug_data;
