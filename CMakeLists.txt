@@ -10,7 +10,13 @@ add_library(rc-fshare STATIC
     "src/git_version.cpp"
     "src/robot_model.cpp")
 
-target_link_libraries(rc-fshare Eigen3::Eigen)
+# Robocup software uses it's own eigen find package for some reason, check for this
+if (TARGET Eigen3::Eigen)
+  # Use the imported target
+    target_link_libraries(rc-fshare Eigen3::Eigen)
+else (TARGET Eigen3::Eigen)
+    target_include_directories(rc-fshare PUBLIC ${EIGEN_INCLUDE_DIR})
+endif (TARGET Eigen3::Eigen)
 
 
 # All headers are assumed to be needed for the interface (PUBLIC)

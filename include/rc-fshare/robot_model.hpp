@@ -22,6 +22,7 @@ public:
 
     /// wheelSpeeds = BotToWheel * V_bot
     Eigen::Matrix<double, 4, 3> BotToWheel;
+    Eigen::Matrix<double, 3, 4> WheelToBot;
 
     /// This should be called when any of the other parameters are changed
     void recalculateBotToWheel() {
@@ -39,6 +40,7 @@ public:
         BotToWheel *= -1;
         BotToWheel /= WheelRadius;
         // clang-format on
+        WheelToBot = (BotToWheel.transpose() * BotToWheel).inverse() * BotToWheel.transpose();
     }
 
     float DutyCycleMultiplier = 2.0f;
