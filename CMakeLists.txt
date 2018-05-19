@@ -3,9 +3,14 @@ cmake_minimum_required(VERSION 3.1)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(Eigen3 REQUIRED)
+
 add_library(rc-fshare STATIC
     "src/pid.cpp"
-    "src/git_version.cpp")
+    "src/git_version.cpp"
+    "src/robot_model.cpp")
+
+target_link_libraries(rc-fshare Eigen3::Eigen)
 
 
 # All headers are assumed to be needed for the interface (PUBLIC)
