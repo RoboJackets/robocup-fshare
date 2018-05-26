@@ -3,9 +3,19 @@ cmake_minimum_required(VERSION 3.1)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(Eigen3 REQUIRED)
+
 add_library(rc-fshare STATIC
     "src/pid.cpp"
     "src/git_version.cpp")
+
+# Robocup software uses it's own eigen find package for some reason, check for this
+if (TARGET Eigen3::Eigen)
+  # Use the imported target
+    target_link_libraries(rc-fshare Eigen3::Eigen)
+else (TARGET Eigen3::Eigen)
+    target_include_directories(rc-fshare PUBLIC ${EIGEN_INCLUDE_DIR})
+endif (TARGET Eigen3::Eigen)
 
 
 # All headers are assumed to be needed for the interface (PUBLIC)

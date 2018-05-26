@@ -6,131 +6,6 @@
 #include <map>
 #include <limits>
 
-namespace DebugCommunication {
-
-enum DebugResponse : uint8_t {
-    DEBUG_RESPONSE_NONE = 0,
-    PIDError0 = 1,
-    PIDError1,
-    PIDError2,
-    PIDError3,
-    MotorDuty0,
-    MotorDuty1,
-    MotorDuty2,
-    MotorDuty3,
-    WheelVel0,
-    WheelVel1,
-    WheelVel2,
-    WheelVel3,
-    StallCounter0,
-    StallCounter1,
-    StallCounter2,
-    StallCounter3,
-    TargetWheelVel0,
-    TargetWheelVel1,
-    TargetWheelVel2,
-    TargetWheelVel3,
-    DEBUG_RESPONSE_LAST_PLACEHOLDER
-};
-
-constexpr std::array<std::pair<DebugResponse, float>,
-                     DEBUG_RESPONSE_LAST_PLACEHOLDER - 1> RESPONSE_INFO = {
-    std::make_pair(DebugResponse::PIDError0, 100.0),
-    std::make_pair(DebugResponse::PIDError1, 100.0),
-    std::make_pair(DebugResponse::PIDError2, 100.0),
-    std::make_pair(DebugResponse::PIDError3, 100.0),
-    std::make_pair(DebugResponse::MotorDuty0, 1),
-    std::make_pair(DebugResponse::MotorDuty1, 1),
-    std::make_pair(DebugResponse::MotorDuty2, 1),
-    std::make_pair(DebugResponse::MotorDuty3, 1),
-    std::make_pair(DebugResponse::WheelVel0, 100.0),
-    std::make_pair(DebugResponse::WheelVel1, 100.0),
-    std::make_pair(DebugResponse::WheelVel2, 100.0),
-    std::make_pair(DebugResponse::WheelVel3, 100.0),
-    std::make_pair(DebugResponse::StallCounter0, 1),
-    std::make_pair(DebugResponse::StallCounter1, 1),
-    std::make_pair(DebugResponse::StallCounter2, 1),
-    std::make_pair(DebugResponse::StallCounter3, 1),
-    std::make_pair(DebugResponse::TargetWheelVel0, 100),
-    std::make_pair(DebugResponse::TargetWheelVel1, 100),
-    std::make_pair(DebugResponse::TargetWheelVel2, 100),
-    std::make_pair(DebugResponse::TargetWheelVel3, 100)};
-
-static_assert(RESPONSE_INFO.size() == DEBUG_RESPONSE_LAST_PLACEHOLDER - 1,
-              "Enums missing from RESPONSE_INFO");
-
-const std::array<float, DEBUG_RESPONSE_LAST_PLACEHOLDER>
-    RESPONSE_TO_SCALING_FACTOR = []() {
-        std::array<float, DEBUG_RESPONSE_LAST_PLACEHOLDER> a{};
-        for (const auto& pair : RESPONSE_INFO) {
-            if (pair.first != DebugResponse::DEBUG_RESPONSE_NONE) {
-                a[pair.first] = pair.second;
-            }
-        }
-        return a;
-    }();
-
-static int16_t debugResponseToValue(DebugResponse debugResponse, float value) {
-    value *= RESPONSE_TO_SCALING_FACTOR[debugResponse];
-    if (value > std::numeric_limits<int16_t>::max()) {
-        return std::numeric_limits<int16_t>::max();
-    } else if (value < std::numeric_limits<int16_t>::min()) {
-        return std::numeric_limits<int16_t>::min();
-    }
-    return static_cast<int16_t>(value);
-};
-
-static float debugResponseValueToFloat(DebugResponse debugResponse,
-                                       int16_t value) {
-    return value / RESPONSE_TO_SCALING_FACTOR[debugResponse];
-}
-
-enum ConfigCommunication : uint8_t {
-    CONFIG_COMMUNICATION_NONE = 0,
-    PID_P = 1,
-    PID_I,
-    PID_D,
-    CONFIG_COMMUNICATION_LAST_PLACEHOLDER
-};
-
-constexpr std::array<std::pair<ConfigCommunication, float>,
-                     CONFIG_COMMUNICATION_LAST_PLACEHOLDER - 1> CONFIG_INFO = {
-    std::make_pair(ConfigCommunication::PID_P, 1000.0f),
-    std::make_pair(ConfigCommunication::PID_I, 1000.0f),
-    std::make_pair(ConfigCommunication::PID_D, 1000.0f)};
-
-static_assert(CONFIG_INFO.size() == CONFIG_COMMUNICATION_LAST_PLACEHOLDER - 1,
-              "Enums missing from CONFIG_INFO");
-
-const std::array<float, CONFIG_COMMUNICATION_LAST_PLACEHOLDER>
-    CONFIG_TO_SCALING_FACTOR = []() {
-        std::array<float, CONFIG_COMMUNICATION_LAST_PLACEHOLDER> a{};
-        for (const auto& pair : CONFIG_INFO) {
-            if (pair.first !=
-                ConfigCommunication::CONFIG_COMMUNICATION_LAST_PLACEHOLDER) {
-                a[pair.first] = pair.second;
-            }
-        }
-        return a;
-    }();
-
-static int16_t configToValue(ConfigCommunication configCommunication,
-                             float value) {
-    value *= CONFIG_TO_SCALING_FACTOR[configCommunication];
-    if (value > std::numeric_limits<int16_t>::max()) {
-        return std::numeric_limits<int16_t>::max();
-    } else if (value < std::numeric_limits<int16_t>::min()) {
-        return std::numeric_limits<int16_t>::min();
-    }
-    return static_cast<int16_t>(value);
-};
-
-static float configValueToFloat(ConfigCommunication configCommunication,
-                                int16_t value) {
-    return value / CONFIG_TO_SCALING_FACTOR[configCommunication];
-}
-}
-
 namespace rtp {
 
 // configured by the PKT_CFG1 register
@@ -197,35 +72,14 @@ struct ControlMessage {
 static_assert(sizeof(ControlMessage) == 9,
               "sizeof(ControlMessage) is not what we expect");
 
-struct ConfMessage {
-    static constexpr size_t length = 3;
-
-    std::array<DebugCommunication::ConfigCommunication, length> keys{};
-    std::array<int16_t, length> values{};
-} __attribute__((packed));
-static_assert(sizeof(ConfMessage) == 9,
-              "sizeof(ConfMessage) is not what we expect");
-
-struct DebugMessage {
-    static constexpr size_t length = 3;
-    std::array<DebugCommunication::DebugResponse, 3> keys;
-};
-
-static_assert(sizeof(DebugMessage) == 3,
-              "sizeof(DebugMessage) is not what we expect");
-
 struct RobotTxMessage {
     unsigned uid : 6;
     enum {
         ControlMessageType,
-        ConfMessageType,
-        DebugMessageType
     } messageType : 2;
 
     union RobotTxMessages {
         ControlMessage controlMessage;
-        ConfMessage confMessage;
-        DebugMessage debugMessage;
     } message;
 
 } __attribute__((packed));
@@ -254,12 +108,9 @@ struct RobotStatusMessage {
     unsigned kickStatus : 1;       // 0 = uncharged, 1 = charged
     unsigned kickHealthy : 1;      // 0 = unhealthy, 1 = healthy
     unsigned fpgaStatus : 1;       // 0 = good, 1 = error
-
-    static constexpr size_t debug_data_length = 0;
-    //    std::array<int16_t,debug_data_length> debug_data;
+    int16_t encDeltas[4];          // encoder changes since last packet
+    int16_t buffer;                // ecnDeltas is getting overwritten, temporary fix?
 } __attribute__((packed));
-static_assert(sizeof(RobotStatusMessage) == 4,
-              "sizeof(RobotStatusMessage) is not what we expect");
 
 // Packet sizes
 static constexpr auto HeaderSize = sizeof(Header);

@@ -14,8 +14,9 @@ Pid::Pid(float p, float i, float d, unsigned int windup, float dAlpha)
       _errSum(0),
       _lastError(0),
       _lastDeriv(0),
-      _oldErr(),
-      _saturated(false) {
+      _saturated(false),
+      _oldErr()
+{
     setWindup(windup);
 }
 

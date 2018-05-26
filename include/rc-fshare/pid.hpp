@@ -27,13 +27,13 @@ private:
 
     unsigned int _windupLoc;
 
-    bool _saturated;
-
     float _errSum;
 
     float _lastError;
 
     float _lastDeriv;
 
-    std::vector<float> _oldErr{};
+    bool _saturated;
+
+    std::vector<float> _oldErr;
 };
