@@ -6,8 +6,6 @@
 #include <map>
 #include <limits>
 
-namespace DebugCommunication {
-
 namespace rtp {
 
 // configured by the PKT_CFG1 register
@@ -78,14 +76,10 @@ struct RobotTxMessage {
     unsigned uid : 6;
     enum {
         ControlMessageType,
-        ConfMessageType,
-        DebugMessageType
     } messageType : 2;
 
     union RobotTxMessages {
         ControlMessage controlMessage;
-        ConfMessage confMessage;
-        DebugMessage debugMessage;
     } message;
 
 } __attribute__((packed));
