@@ -10,7 +10,32 @@ constexpr double DegreesToRadians(double val) { return val * M_PI / 180.0; }
 
 /// Model parameters for a robot.  Used by the controls system.
 class RobotModel {
+private:
+    RobotModel() {
+        WheelRadius = 0.02786;
+        WheelAngles = {
+            DegreesToRadians(180 - 30),  // M1
+            DegreesToRadians(180 + 39),  // M2
+            DegreesToRadians(360 - 39),  // M3
+            DegreesToRadians(0 + 30),    // M4
+        };
+
+        WheelDist = 0.0798576;
+
+        recalculateBotToWheel();
+    }
+
 public:
+    // singleton pattern
+    static RobotModel& get() {
+        static RobotModel instance; // Guaranteed to be destroyed.
+        // Instantiated on first use.
+        return instance;
+    }
+
+    RobotModel(RobotModel const&) = delete;
+    void operator=(RobotModel const&) = delete;
+
     /// Radius of omni-wheel (in meters)
     double WheelRadius;
 

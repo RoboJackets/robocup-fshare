@@ -7,8 +7,7 @@ find_package(Eigen3 REQUIRED)
 
 add_library(rc-fshare STATIC
     "src/pid.cpp"
-    "src/git_version.cpp"
-    "src/robot_model.cpp")
+    "src/git_version.cpp")
 
 # Robocup software uses it's own eigen find package for some reason, check for this
 if (TARGET Eigen3::Eigen)
