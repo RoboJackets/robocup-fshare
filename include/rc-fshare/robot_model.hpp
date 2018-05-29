@@ -12,7 +12,7 @@
 /// Model parameters for a robot.  Used by the controls system.
 class RobotModel {
 
-constexpr double DegreesToRadians(double val) { return val * M_PI / 180.0; }
+static constexpr double DegreesToRadians(double val) { return val * M_PI / 180.0; }
 
 private:
     RobotModel() {
