@@ -56,20 +56,39 @@ struct ControlMessage {
      * is to avoid loss of precision when sending float velocity values across
      * the air as ints.
      */
+    static constexpr auto POSE_SCALE_FACTOR = 1000;
     static constexpr auto VELOCITY_SCALE_FACTOR = 1000;
+    static constexpr auto ACCELERATION_SCALE_FACTOR = 500;
 
-    //    uint8_t uid;
-    int16_t bodyX;
-    int16_t bodyY;
-    int16_t bodyW;
+    // Values from vision
+    int16_t vision_pose_x;
+    int16_t vision_pose_y;
+    int16_t vision_pose_theta;
+
+    // Goals
+    int16_t goal_pose_x;
+    int16_t goal_pose_y;
+    int16_t goal_pose_theta;
+
+    int16_t goal_velocity_x;
+    int16_t goal_velocity_y;
+    int16_t goal_velocity_theta;
+
+    int16_t goal_acceleration_x;
+    int16_t goal_acceleration_y;
+    int16_t goal_acceleration_theta;
+
     int8_t dribbler;
     uint8_t kickStrength;
+
+    unsigned motionMode : 2;   // 0 = position control, 1 = velocity control
+
     unsigned shootMode : 1;    // 0 = kick, 1 = chip
     unsigned triggerMode : 2;  // 0 = off, 1 = immediate, 2 = on break beam
                                //    unsigned debugStuff : 5;
     unsigned song : 2;         // 0 = stop, 1 = continue, 2 = GT fight song
 } __attribute__((packed));
-static_assert(sizeof(ControlMessage) == 9,
+static_assert(sizeof(ControlMessage) == 27,
               "sizeof(ControlMessage) is not what we expect");
 
 struct RobotTxMessage {
@@ -89,7 +108,7 @@ struct RobotTxMessage {
 //    static_assert(s == t, "wrong size");
 //};
 // check_size<sizeof(RobotTxMessage), 10> ch;
-static_assert(sizeof(RobotTxMessage) == 10,
+static_assert(sizeof(RobotTxMessage) == 28,
               "sizeof(RobotTxMessage) is not what we expect");
 
 struct RobotStatusMessage {
