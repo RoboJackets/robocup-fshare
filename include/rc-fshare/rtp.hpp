@@ -113,7 +113,7 @@ struct RobotStatusMessage {
 
 // Packet sizes
 static constexpr auto HeaderSize = sizeof(Header);
-static constexpr auto ForwardSize = HeaderSize + 6 * sizeof(RobotTxMessage);
+static constexpr auto ForwardSize = HeaderSize + sizeof(RobotTxMessage);
 static constexpr auto ReverseSize = HeaderSize + sizeof(RobotStatusMessage);
 
 /**
