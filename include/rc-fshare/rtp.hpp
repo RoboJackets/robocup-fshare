@@ -108,7 +108,7 @@ struct RobotStatusMessage {
     unsigned kickStatus : 1;       // 0 = uncharged, 1 = charged
     unsigned kickHealthy : 1;      // 0 = unhealthy, 1 = healthy
     unsigned fpgaStatus : 1;       // 0 = good, 1 = error
-    int16_t encDeltas[4];          // encoder changes since last packet
+    int16_t encDeltas[12];         // encoder changes since last packet
 } __attribute__((packed));
 
 // Packet sizes
