@@ -80,5 +80,6 @@ void Pid::reset() {
     _windupLoc = 0;
     _lastDeriv = 0;
     _saturated = false;
+    _errSum = 0;
     std::fill(_oldErr.begin(), _oldErr.end(), 0);
 }
