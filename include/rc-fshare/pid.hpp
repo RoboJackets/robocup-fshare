@@ -19,6 +19,11 @@ public:
     float kp, ki, kd;
     float derivAlpha;
 
+    /**
+     * Reset all internal state except for last_error
+     */
+    void reset();
+
     void set_saturated(bool is_saturated) { _saturated = is_saturated; }
 
 private:

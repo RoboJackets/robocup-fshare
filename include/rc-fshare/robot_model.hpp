@@ -6,7 +6,6 @@
 #include <Eigen/Dense>
 #include <array>
 #include <cmath>
-//#include "const-math.hpp"
 
 
 /// Model parameters for a robot.  Used by the controls system.
@@ -72,7 +71,11 @@ public:
         WheelToBot = (BotToWheel.transpose() * BotToWheel).inverse() * BotToWheel.transpose();
     }
 
-    float DutyCycleMultiplier = 2.0f;
+    // Convert rad/s to duty cycle
+    // Choosen empirically on a no load robot
+    // doing the average ratio between commanded speed
+    // and output speed
+    float SpeedToDutyCycle = 5.0f;
 };
 
 /// Model parameters for robot.  See RobotModel.cpp for values.

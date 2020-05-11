@@ -73,3 +73,13 @@ void Pid::clearWindup() {
     _errSum = 0;
     std::fill(_oldErr.begin(), _oldErr.end(), 0);
 }
+
+void Pid::reset() {
+    // Don't reset _lastError
+    _windup = 0;
+    _windupLoc = 0;
+    _lastDeriv = 0;
+    _saturated = false;
+    _errSum = 0;
+    std::fill(_oldErr.begin(), _oldErr.end(), 0);
+}
