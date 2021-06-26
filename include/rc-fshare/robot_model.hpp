@@ -75,7 +75,7 @@ public:
     // Choosen empirically on a no load robot
     // doing the average ratio between commanded speed
     // and output speed
-    static constexpr float kDutyCycleToSpeed = 100;
+    static constexpr float kDutyCycleToSpeed = 125;
     static constexpr float kSpeedToDutyCycle = 1 / kDutyCycleToSpeed;
 };
 
