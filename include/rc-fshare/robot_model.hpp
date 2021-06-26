@@ -75,7 +75,8 @@ public:
     // Choosen empirically on a no load robot
     // doing the average ratio between commanded speed
     // and output speed
-    float SpeedToDutyCycle = 5.0f;
+    static constexpr float kDutyCycleToSpeed = 125;
+    static constexpr float kSpeedToDutyCycle = 1 / kDutyCycleToSpeed;
 };
 
 /// Model parameters for robot.  See RobotModel.cpp for values.
