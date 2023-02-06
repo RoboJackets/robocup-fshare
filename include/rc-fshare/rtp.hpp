@@ -67,7 +67,7 @@ struct ControlMessage {
     unsigned shootMode : 1;    // 0 = kick, 1 = chip
     unsigned triggerMode : 2;  // 0 = off, 1 = immediate, 2 = on break beam
                                //    unsigned debugStuff : 5;
-    unsigned song : 2;         // 0 = stop, 1 = continue, 2 = GT fight song
+    unsigned role : 2;         // see rj_protos/proto/Control.proto
 } __attribute__((packed));
 static_assert(sizeof(ControlMessage) == 9,
               "sizeof(ControlMessage) is not what we expect");
