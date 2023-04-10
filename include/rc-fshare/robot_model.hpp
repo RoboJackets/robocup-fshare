@@ -16,17 +16,30 @@ static constexpr double DegreesToRadians(double val) { return val * M_PI / 180.0
 private:
     RobotModel() {
         WheelRadius = 0.02786;
+        
+        RearWheelDist = 0.077874;
+        FrontWheelDist = 0.078089;
+        
+        FrontAngle = 30;
+        BackAngle = 45;
+        
         WheelAngles = {
-            DegreesToRadians(180 - 30),  // M1
-            DegreesToRadians(180 + 39),  // M2
-            DegreesToRadians(360 - 39),  // M3
-            DegreesToRadians(0 + 30),    // M4
+            DegreesToRadians(180 - FrontAngle),  // M1
+            DegreesToRadians(180 + BackAngle),  // M2
+            DegreesToRadians(360 - BackAngle),  // M3
+            DegreesToRadians(0 + FrontAngle),    // M4
         };
 
-        WheelDist = 0.0798576;
+        // = 0.0779815
+        WheelDist = (FrontWheelDist + RearWheelDist) / 2.0;
 
         recalculateBotToWheel();
     }
+    
+    double RearWheelDist;
+    double FrontWheelDist;
+    int BackAngle;
+    int FrontAngle;
 
 public:
     // singleton pattern
