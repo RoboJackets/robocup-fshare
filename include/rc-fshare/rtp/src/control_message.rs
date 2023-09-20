@@ -9,7 +9,9 @@ use packed_struct::prelude::*;
 const VELOCITY_SCALE_FACTOR: f32 = 1000.0;
 
 /// The Control Message is Sent from the Base Station to the Robots.
-#[derive(PackedStruct)]
+/// 
+/// Size = 80 Bits = 10 Bytes
+#[derive(PackedStruct, Clone, Copy, Debug)]
 #[packed_struct(bit_numbering="msb0", endian="msb")]
 pub struct ControlMessage {
     // Id of the Robot where first bit is the team (0 vs 1) and the remaining
