@@ -2,6 +2,14 @@
 name = "robojackets-robocup-rtp"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Communication Messages for RoboJackets Robocup"
+authors = ["Nathaniel Wert <n8.wert.b@gmail.com>"]
+
+include = [
+    "src/*.rs",
+    "Cargo.toml",
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
