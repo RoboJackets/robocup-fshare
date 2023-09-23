@@ -97,7 +97,7 @@ impl ControlMessage {
             team: team.into(),
             robot_id: robot_id.into(),
             shoot_mode,
-            trigger_mode: trigger_mode.into(),
+            trigger_mode: (trigger_mode as u8).into(),
             body_x: ((body_x * VELOCITY_SCALE_FACTOR) as i16).into(),
             body_y: ((body_y * VELOCITY_SCALE_FACTOR) as i16).into(),
             body_w: ((body_w * VELOCITY_SCALE_FACTOR) as i16).into(),
