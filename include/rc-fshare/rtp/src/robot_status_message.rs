@@ -4,9 +4,12 @@
 
 use packed_struct::prelude::*;
 
+use crate::Team;
+
 /// battery_voltage is a direct reading from the micrcontroller's ADC
 /// and must be converted to an actual voltage, which means it should be
 /// multiplied by this scale factor (TODO: Debug the scale factor)
+#[allow(unused)]
 const BATTERY_SCALE_FACTOR: f32 = 0.09884;
 
 /// The Robot Status Message is sent back from the robot's whenever they receive communication
@@ -16,10 +19,13 @@ const BATTERY_SCALE_FACTOR: f32 = 0.09884;
 #[derive(PackedStruct, Clone, Copy, Debug)]
 #[packed_struct(bit_numbering="msb0", endian="msb")]
 pub struct RobotStatusMessage {
-    // Id of the Robot where the first bit is the team (0 vs 1) and the remaining
-    // 4 bits are the id of the robot (0->15)
-    #[packed_field(bits="0..=4")]
-    pub robot_id: Integer<u8, packed_bits::Bits::<5>>,
+    // Team of the RObot (0: Blue) (1: Yellow)
+    #[packed_field(bits="0")]
+    pub team: bool,
+
+    // Id of the Robot
+    #[packed_field(bits="1..=4")]
+    pub robot_id: Integer<u8, packed_bits::Bits::<4>>,
 
     // True if the robot currently has ball sense
     #[packed_field(bits="5")]
@@ -54,18 +60,29 @@ pub struct RobotStatusMessage {
     pub encoder_deltas: [u16; 18],
 }
 
-impl Default for RobotStatusMessage {
-    fn default() -> Self {
+impl RobotStatusMessage {
+    pub fn new(
+        team: Team,
+        robot_id: u8,
+        ball_sense_status: bool,
+        kick_status: bool,
+        kick_healthy: bool,
+        battery_voltage: u8,
+        motor_errors: u8,
+        fpga_status: bool,
+        encoder_deltas: [u16; 18],
+    ) -> Self {
         Self {
-            robot_id: 0.into(),
-            ball_sense_status: false,
-            kick_healthy: false,
-            kick_status: false,
-            battery_voltage: 0.into(),
-            motor_errors: 0.into(),
-            fpga_status: false,
-            unused: 0.into(),
-            encoder_deltas: [0u16; 18],
+            team: team.into(),
+            robot_id: robot_id.into(),
+            ball_sense_status,
+            kick_status,
+            kick_healthy,
+            battery_voltage: battery_voltage.into(),
+            motor_errors: motor_errors.into(),
+            fpga_status,
+            unused: 0u8.into(),
+            encoder_deltas,
         }
     }
 }

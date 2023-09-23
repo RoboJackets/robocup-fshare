@@ -4,6 +4,8 @@
 
 use packed_struct::prelude::*;
 
+use crate::Team;
+
 /// The body{X, Y, W} are multiplied (upon sending) by the VELOCITY_SCALE_FACTOR and devided
 /// (upon receiving) to preserve at least 3 decimals of floating point precision.
 const VELOCITY_SCALE_FACTOR: f32 = 1000.0;
@@ -14,10 +16,13 @@ const VELOCITY_SCALE_FACTOR: f32 = 1000.0;
 #[derive(PackedStruct, Clone, Copy, Debug)]
 #[packed_struct(bit_numbering="msb0", endian="msb")]
 pub struct ControlMessage {
-    // Id of the Robot where first bit is the team (0 vs 1) and the remaining
-    // 4 bits are the id of the robot (0->15)
-    #[packed_field(bits="0..=4")]
-    pub robot_id: Integer<u8, packed_bits::Bits::<5>>,
+    // Team of the Robot (0: Blue) (1: Yellow)
+    #[packed_field(bits="0")]
+    pub team: bool,
+
+    // Id of the Robot
+    #[packed_field(bits="1..=4")]
+    pub robot_id: Integer<u8, packed_bits::Bits::<4>>,
 
     // Mode of kicking for the robot
     // 0 -> Kick
@@ -59,6 +64,35 @@ pub struct ControlMessage {
     // Unused Bits to make this struct an even byte length
     #[packed_field(bits="74..=79")]
     pub unused: Integer<u8, packed_bits::Bits::<6>>,
+}
+
+impl ControlMessage {
+    pub fn new(
+        team: Team,
+        robot_id: u8,
+        shoot_mode: bool,
+        trigger_mode: u8,
+        body_x: f32,
+        body_y: f32,
+        body_w: f32,
+        dribbler_speed: i8,
+        kick_strength: u8,
+        role: u8,
+    ) -> Self {
+        Self {
+            team: team.into(),
+            robot_id: robot_id.into(),
+            shoot_mode,
+            trigger_mode: trigger_mode.into(),
+            body_x: ((body_x * VELOCITY_SCALE_FACTOR) as i16).into(),
+            body_y: ((body_y * VELOCITY_SCALE_FACTOR) as i16).into(),
+            body_w: ((body_w * VELOCITY_SCALE_FACTOR) as i16).into(),
+            dribbler_speed: dribbler_speed.into(),
+            kick_strength: kick_strength.into(),
+            role: role.into(),
+            unused: 0u8.into(),
+        }
+    }
 }
 
 // TODO: Write Tests (I'm still not 100% certain how to write no-std tests)
