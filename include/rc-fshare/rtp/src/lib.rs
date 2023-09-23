@@ -3,10 +3,8 @@
 //! base station, and robots.
 //! 
 
-#![cfg_attr(feature = "std", std)]
-
 #![cfg_attr(feature = "nostd", no_std)]
-#![cfg(feature = "nostd")]
+#[cfg(feature = "nostd")]
 extern crate alloc;
 
 pub mod control_message;
