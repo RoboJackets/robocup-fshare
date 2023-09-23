@@ -10,6 +10,20 @@ use crate::Team;
 /// (upon receiving) to preserve at least 3 decimals of floating point precision.
 const VELOCITY_SCALE_FACTOR: f32 = 1000.0;
 
+/// The Trigger Mode Kicking
+#[derive(Clone, Copy, Debug)]
+pub enum TriggerMode {
+    StandDown = 0,
+    Immediate = 1,
+    OnBreakBeam = 2,
+}
+
+impl Into<u8> for TriggerMode {
+    fn into(self) -> u8 {
+        self as u8
+    }
+}
+
 /// The Control Message is Sent from the Base Station to the Robots.
 /// 
 /// Size = 80 Bits = 10 Bytes
@@ -71,7 +85,7 @@ impl ControlMessage {
         team: Team,
         robot_id: u8,
         shoot_mode: bool,
-        trigger_mode: u8,
+        trigger_mode: TriggerMode,
         body_x: f32,
         body_y: f32,
         body_w: f32,

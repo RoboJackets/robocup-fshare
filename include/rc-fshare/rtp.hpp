@@ -22,7 +22,7 @@ struct ControlMessage {
 } __attribute__((packed));
 
 struct RobotStatusMessage {
-    static constexpr float VELOCITY_SCALE_FACTOR = 1000.0f;
+    static constexpr float BATTERY_SCALE_FACTOR = 0.09884f;;
 
     unsigned robot_id : 5;
     unsigned ball_sense_status : 1;
