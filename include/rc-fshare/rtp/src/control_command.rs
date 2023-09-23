@@ -3,6 +3,9 @@
 //! Up and Power Down Commands
 //! 
 
+#[cfg(feature = "nostd")]
+use alloc::format;
+
 use packed_struct::prelude::*;
 
 use crate::Team;

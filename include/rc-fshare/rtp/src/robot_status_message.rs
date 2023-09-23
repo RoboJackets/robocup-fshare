@@ -2,6 +2,9 @@
 //! The Robot Status Message is sent from the robots to the base station and finally to the computer
 //! 
 
+#[cfg(feature = "nostd")]
+use alloc::format;
+
 use packed_struct::prelude::*;
 
 use crate::Team;

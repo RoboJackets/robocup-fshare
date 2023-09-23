@@ -1,5 +1,5 @@
 [package]
-name = "rtp"
+name = "robojackets-robocup-rtp"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,4 +9,9 @@ edition = "2021"
 
 [dependencies.packed_struct]
 version = "0.10.1"
-features = ["alloc"]
+default-features = false
+
+[features]
+default = ["std"]
+std = ["packed_struct/std"]
+nostd = ["packed_struct/alloc"]

@@ -2,6 +2,9 @@
 //! The Control Message is sent to robots over radio to inform them of what actions to take.
 //! 
 
+#[cfg(feature = "nostd")]
+use alloc::format;
+
 use packed_struct::prelude::*;
 
 use crate::Team;
