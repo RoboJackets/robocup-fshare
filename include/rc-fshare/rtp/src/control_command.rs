@@ -8,7 +8,7 @@ use alloc::format;
 
 use packed_struct::prelude::*;
 
-use crate::Team;
+use crate::{Team, RTPHeader, MessageType};
 
 /// List of Control Commands that can be sent to the robots
 pub enum CommandTypes {
@@ -56,4 +56,8 @@ impl ControlCommand {
             command: (CommandTypes::PowerDown as u8).into(),
         }
     }
+}
+
+impl RTPHeader for ControlCommand {
+    fn get_header() -> MessageType { MessageType::ControlCommand }
 }

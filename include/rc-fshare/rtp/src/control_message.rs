@@ -7,7 +7,7 @@ use alloc::format;
 
 use packed_struct::prelude::*;
 
-use crate::Team;
+use crate::{Team, RTPHeader, MessageType};
 
 /// The body{X, Y, W} are multiplied (upon sending) by the VELOCITY_SCALE_FACTOR and devided
 /// (upon receiving) to preserve at least 3 decimals of floating point precision.
@@ -110,6 +110,10 @@ impl ControlMessage {
             unused: 0u8.into(),
         }
     }
+}
+
+impl RTPHeader for ControlMessage {
+    fn get_header() -> MessageType { MessageType::ControlMessage }
 }
 
 // TODO: Write Tests (I'm still not 100% certain how to write no-std tests)

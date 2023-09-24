@@ -28,3 +28,30 @@ impl Into<bool> for Team {
         }
     }
 }
+
+/// The Type of Message Being Sent to the Robots
+#[derive(Clone, Copy, Debug)]
+pub enum MessageType {
+    /// Control Message (see control_message.rs)
+    ControlMessage = 0,
+    /// Control Command (see control_command.rs)
+    ControlCommand = 1,
+    /// Unknown Command
+    Unknown = 255,
+}
+
+impl From<u8> for MessageType {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => MessageType::ControlMessage,
+            1 => MessageType::ControlCommand,
+            _ => MessageType::Unknown,
+        }
+    }
+}
+
+/// The 8 bit header (usually denoting the message type)
+pub trait RTPHeader {
+    /// Gets the header value corresponding to the specific outgoing message type.
+    fn get_header() -> MessageType;
+}
