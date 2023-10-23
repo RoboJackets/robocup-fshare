@@ -80,10 +80,11 @@ pub struct ControlMessage {
 
     // Unused Bits to make this struct an even byte length
     #[packed_field(bits="74..=79")]
-    pub unused: Integer<u8, packed_bits::Bits::<6>>,
+    unused: Integer<u8, packed_bits::Bits::<6>>,
 }
 
 impl ControlMessage {
+    /// Create a new Control Message from parameters
     pub fn new(
         team: Team,
         robot_id: u8,

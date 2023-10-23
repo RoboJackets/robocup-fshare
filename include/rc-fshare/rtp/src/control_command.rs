@@ -14,6 +14,7 @@ use crate::{Team, RTPHeader, MessageType};
 pub enum CommandTypes {
     WakeUp = 7,
     PowerDown = 0,
+    Unknown = 1,
 }
 
 impl Into<u8> for CommandTypes {
@@ -41,6 +42,7 @@ pub struct ControlCommand {
 }
 
 impl ControlCommand {
+    /// Create a wake up control command
     pub fn wake_up(team: Team, robot_id: u8) -> Self {
         Self {
             team: team.into(),
@@ -48,12 +50,22 @@ impl ControlCommand {
             command: (CommandTypes::WakeUp as u8).into(),
         }
     }
-
+    
+    /// Create a shut down control command
     pub fn shut_down(team: Team, robot_id: u8) -> Self {
         Self {
             team: team.into(),
             robot_id: robot_id.into(),
             command: (CommandTypes::PowerDown as u8).into(),
+        }
+    }
+
+    /// Decipher the Command Type from a ControlCommand
+    pub fn command_type(&self) -> CommandTypes {
+        match self.command.to_be() {
+            0 => CommandTypes::PowerDown,
+            7 => CommandTypes::WakeUp,
+            _ => CommandTypes::Unknown,
         }
     }
 }
