@@ -68,7 +68,7 @@ checksum = "dc33ff2d4973d518d823d61aa239014831e521c75da58e3df4840d3f47749d09"
 
 [[package]]
 name = "robojackets-robocup-rtp"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "packed_struct",
 ]
