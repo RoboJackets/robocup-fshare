@@ -9,7 +9,8 @@ namespace rtp {
 struct ControlMessage {
     static constexpr float VELOCITY_SCALE_FACTOR = 1000.0f;
 
-    unsigned robot_id : 5;
+    unsigned team: 1;
+    unsigned robot_id : 4;
     unsigned shoot_mode : 1;
     unsigned trigger_mode : 2;
     int16_t body_x;
@@ -24,7 +25,8 @@ struct ControlMessage {
 struct RobotStatusMessage {
     static constexpr float BATTERY_SCALE_FACTOR = 0.09884f;;
 
-    unsigned robot_id : 5;
+    unsigned team: 1;
+    unsigned robot_id : 4;
     unsigned ball_sense_status : 1;
     unsigned kick_status : 1;
     unsigned kick_healthy : 1;
