@@ -41,11 +41,16 @@ struct ControlMessage {
 struct RobotStatusMessage {
     static constexpr float BATTERY_SCALE_FACTOR = 0.09884f;;
 
+<<<<<<< HEAD
     // Team of the robot (0: Blue) (1: Yellow)
     unsigned team: 1;
     // Id of the robot
     unsigned robot_id : 5;
     // True if the robot has ball sense
+=======
+    unsigned team: 1;
+    unsigned robot_id : 4;
+>>>>>>> fe98c66587ef5ba531f37cabaa824ce1906cb754
     unsigned ball_sense_status : 1;
     // is kicking or not
     unsigned kick_status : 1;
