@@ -20,7 +20,7 @@ const BATTERY_SCALE_FACTOR: f32 = 0.09884;
 /// 
 /// Size = 21 Bytes
 #[derive(PackedStruct, Clone, Copy, Debug)]
-#[packed_struct(bit_numbering="msb0", endian="msb")]
+#[packed_struct(bit_numbering="msb0", endian="lsb")]
 pub struct RobotStatusMessage {
     // Team of the RObot (0: Blue) (1: Yellow)
     #[packed_field(bits="0")]
@@ -86,6 +86,21 @@ impl RobotStatusMessage {
             fpga_status,
             unused: 0u8.into(),
             encoder_deltas,
+        }
+    }
+
+    pub fn empty(team: Team, robot_id: u8) -> Self {
+        Self {
+            team: team.into(),
+            robot_id: robot_id.into(),
+            ball_sense_status: false,
+            kick_status: false,
+            kick_healthy: true,
+            battery_voltage: 0u8.into(),
+            motor_errors: 0u8.into(),
+            fpga_status: true,
+            unused: 0u8.into(),
+            encoder_deltas: [0u16; 18],
         }
     }
 }
