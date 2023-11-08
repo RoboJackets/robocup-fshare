@@ -31,7 +31,7 @@ impl Into<u8> for TriggerMode {
 /// 
 /// Size = 80 Bits = 10 Bytes
 #[derive(PackedStruct, Clone, Copy, Debug)]
-#[packed_struct(bit_numbering="msb0", endian="msb")]
+#[packed_struct(bit_numbering="msb0", endian="lsb")]
 pub struct ControlMessage {
     // Team of the Robot (0: Blue) (1: Yellow)
     #[packed_field(bits="0")]
