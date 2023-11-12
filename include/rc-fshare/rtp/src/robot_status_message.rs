@@ -7,7 +7,7 @@ use alloc::format;
 
 use packed_struct::prelude::*;
 
-use crate::Team;
+use crate::{Team, RTPHeader, MessageType};
 
 /// battery_voltage is a direct reading from the micrcontroller's ADC
 /// and must be converted to an actual voltage, which means it should be
