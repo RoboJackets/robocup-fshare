@@ -26,7 +26,7 @@ impl Into<u8> for CommandTypes {
 /// Control Commands are very specific commands that have the same format and can
 /// be sent to the robots to make them behave in specific ways
 #[derive(PackedStruct, Clone, Copy, Debug)]
-#[packed_struct(bit_numbering="msb0", endian="msb")]
+#[packed_struct(bit_numbering="msb0", endian="lsb")]
 pub struct ControlCommand {
     // Team of the Robot (0: Blue) (1: Yellow)
     #[packed_field(bits="0")]

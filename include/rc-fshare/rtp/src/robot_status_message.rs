@@ -105,4 +105,8 @@ impl RobotStatusMessage {
     }
 }
 
+impl RTPHeader for RobotStatusMessage {
+    fn get_header() -> MessageType { MessageType::RobotStatusMessage }
+}
+
 // TODO: Write Tests (I'm still not 100% certain how to write no-std tests)

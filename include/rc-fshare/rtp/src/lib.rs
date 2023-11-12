@@ -36,6 +36,8 @@ pub enum MessageType {
     ControlMessage = 0,
     /// Control Command (see control_command.rs)
     ControlCommand = 1,
+    /// Robot Status Message (see robot_status_message.rs)
+    RobotStatusMessage = 2,
     /// Unknown Command
     Unknown = 255,
 }
