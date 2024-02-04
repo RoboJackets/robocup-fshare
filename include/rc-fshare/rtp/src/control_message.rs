@@ -13,11 +13,11 @@ use crate::Team;
 
 /// The body{X, Y, W} are multiplied (upon sending) by the VELOCITY_SCALE_FACTOR and divided
 /// (upon receiving) to preserve at least 3 decimals of floating point precision.
-const VELOCITY_SCALE_FACTOR: f32 = 1000.0;
+pub const VELOCITY_SCALE_FACTOR: f32 = 1000.0;
 
 /// The size of a ControlMessage in Bytes as a constant.
 /// Note: This is tested in the tests so it can be trusted
-const CONTROL_MESSAGE_SIZE: usize = 10;
+pub const CONTROL_MESSAGE_SIZE: usize = 10;
 
 /// The Trigger Mode Kicking
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

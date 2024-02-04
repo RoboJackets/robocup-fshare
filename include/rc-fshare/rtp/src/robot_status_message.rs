@@ -15,11 +15,11 @@ use crate::Team;
 /// and must be converted to an actual voltage, which means it should be
 /// multiplied by this scale factor (TODO: Debug the scale factor)
 #[allow(unused)]
-const BATTERY_SCALE_FACTOR: f32 = 0.09884;
+pub const BATTERY_SCALE_FACTOR: f32 = 0.09884;
 
 /// The size of a RobotStatusMessage in Bytes as a constant.
 /// Note: This is tested in the tests so it can be trusted
-const ROBOT_STATUS_SIZE: usize = 3;
+pub const ROBOT_STATUS_SIZE: usize = 3;
 
 /// The Robot Status Message is sent back from the robot's whenever they receive communication
 /// to let software know that they are doing good.
