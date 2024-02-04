@@ -7,6 +7,9 @@
 #[cfg(feature = "nostd")]
 use alloc::format;
 
+#[cfg(feature = "nostd")]
+use nalgebra::base::*;
+
 use packed_struct::prelude::*;
 
 use crate::Team;
@@ -105,7 +108,14 @@ pub struct ControlMessage {
 }
 
 impl ControlMessage {
-    // TODO: Add a function to reverse the body coordinate transform
+    #![cfg(feature = "nostd")]
+    pub fn get_velocity(&self) -> Vector3<f32> {
+        Vector3::new(
+            (*self.body_x as f32) / VELOCITY_SCALE_FACTOR,
+            (*self.body_y as f32) / VELOCITY_SCALE_FACTOR,
+            (*self.body_w as f32) / VELOCITY_SCALE_FACTOR,
+        )
+    }
 }
 
 pub struct ControlMessageBuilder {
