@@ -5,11 +5,11 @@
 #[cfg(all(feature = "yellow-team", feature = "blue-team"))]
 panic!("Yellow Team and Blue Team can not be selected at the same time!!!");
 
-#[cfg(any(feature = "yellow-team", not(feature = "blue-team")))]
+#[cfg(any(feature = "blue-team", not(feature = "yellow-team")))]
 /// Base Station Address (in nRF24L01+ Pipe Addresses) for the Yellow Team
 pub const BASE_STATION_ADDRESS: [u8; 5] = [0xE7, 0xE7, 0xE7, 0xE7, 0xE7];
 
-#[cfg(any(feature = "yellow-team", not(feature = "blue-team")))]
+#[cfg(any(feature = "blue-team", not(feature = "yellow-team")))]
 /// Robot Addresses (in nRF24L01+ Pipe Addresses) for the Blue Team
 pub const ROBOT_RADIO_ADDRESSES: [[u8; 5]; 6] = [
     [0xC3, 0xC3, 0xC3, 0xC3, 0xC1],
@@ -20,11 +20,11 @@ pub const ROBOT_RADIO_ADDRESSES: [[u8; 5]; 6] = [
     [0xC3, 0xC3, 0xC3, 0xC3, 0xC6],
 ];
 
-#[cfg(feature = "blue-team")]
+#[cfg(feature = "yellow-team")]
 /// Base Station Address (as an nRF24L01+)
 pub const BASE_STATION_ADDRESS: [u8; 5] = [0xA4, 0xA4, 0xA4, 0xA4, 0xA4];
 
-#[cfg(feature = "blue-team")]
+#[cfg(feature = "yellow-team")]
 /// Robot Addresses (in nRF24L01+ Pipe Addresses) for the Blue Team.
 pub const ROBOT_RADIO_ADDRESSES: [[u8; 5]; 6] = [
     [0xD5, 0xD5, 0xD5, 0xD5, 0xD1],
