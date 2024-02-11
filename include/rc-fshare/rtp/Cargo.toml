@@ -1,6 +1,6 @@
 [package]
 name = "robojackets-robocup-rtp"
-version = "0.2.2"
+version = "0.3.0"
 edition = "2021"
 license = "MIT"
 description = "Communication Messages for RoboJackets Robocup"
@@ -22,3 +22,5 @@ default-features = false
 default = ["nostd"]
 std = ["packed_struct/std"]
 nostd = ["packed_struct/alloc", "nalgebra"]
+yellow-team = []
+blue-team = []

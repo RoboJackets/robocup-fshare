@@ -8,7 +8,14 @@
 extern crate alloc;
 
 pub mod control_message;
+pub use control_message::{ControlMessage, ControlMessageBuilder, CONTROL_MESSAGE_SIZE};
+
 pub mod robot_status_message;
+pub use robot_status_message::{RobotStatusMessage, RobotStatusMessageBuilder, ROBOT_STATUS_SIZE};
+pub mod radio_addresses;
+
+pub use radio_addresses::BASE_STATION_ADDRESS;
+pub use radio_addresses::ROBOT_RADIO_ADDRESSES;
 
 // Team that Robots can be on.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
