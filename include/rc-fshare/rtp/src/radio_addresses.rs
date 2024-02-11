@@ -2,9 +2,6 @@
 //! The addresses of radios on the nRF24L01+ Network
 //! 
 
-#[cfg(all(feature = "yellow-team", feature = "blue-team"))]
-panic!("Yellow Team and Blue Team can not be selected at the same time!!!");
-
 #[cfg(any(feature = "blue-team", not(feature = "yellow-team")))]
 /// Base Station Address (in nRF24L01+ Pipe Addresses) for the Yellow Team
 pub const BASE_STATION_ADDRESS: [u8; 5] = [0xE7, 0xE7, 0xE7, 0xE7, 0xE7];
