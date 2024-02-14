@@ -54,8 +54,6 @@ struct RobotStatusMessage {
     unsigned fpga_status: 1;
     // Error per motor
     unsigned motor_errors: 5;
-    // Encoder deltas
-    int16_t encoder_deltas[18];
 } __attribute__((packed));
 
 }  // namespace rtp
