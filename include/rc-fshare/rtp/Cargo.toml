@@ -10,17 +10,10 @@ authors = ["Nathaniel Wert <n8.wert.b@gmail.com>"]
 
 [dependencies.nalgebra]
 version = "0.32.3"
-optional = true
 default-features = false
 features = ["libm", "nalgebra-macros", "alloc"]
 
-[dependencies.packed_struct]
-version = "0.10.1"
-default-features = false
-
 [features]
-default = ["nostd"]
-std = ["packed_struct/std"]
-nostd = ["packed_struct/alloc", "nalgebra"]
+default = []
 yellow-team = []
 blue-team = []

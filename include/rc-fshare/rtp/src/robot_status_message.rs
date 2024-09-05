@@ -1,13 +1,8 @@
 //!
 //! The Robot Status Message is sent from the robots to the base station and finally to the computer
-//! 
+//!
 
 #![allow(dead_code)]
-
-#[cfg(feature = "nostd")]
-use alloc::format;
-
-use packed_struct::prelude::*;
 
 use crate::Team;
 
@@ -23,46 +18,70 @@ pub const ROBOT_STATUS_SIZE: usize = 3;
 
 /// The Robot Status Message is sent back from the robot's whenever they receive communication
 /// to let software know that they are doing good.
-/// 
+///
+/// The RobotStatusMessage has the following format:
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+/// |    0    |    1    |    2    |    3    |    4    |    5    |    6    |    7    |
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+/// | team    | robot_id                              | b_sense | k_status| k_health|
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+/// | battery_voltage                                                               |
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+/// | motor_errors                                    | fpga_s  | unused            |
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+///
 /// Size = 3 Bytes
-#[derive(PackedStruct, Clone, Copy, Debug, PartialEq, Eq)]
-#[packed_struct(bit_numbering="msb0", endian="lsb")]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RobotStatusMessage {
     // Team of the RObot (0: Blue) (1: Yellow)
-    #[packed_field(bits="0")]
-    pub team: bool,
-
+    pub team: Team,
     // Id of the Robot
-    #[packed_field(bits="1..=4")]
-    pub robot_id: Integer<u8, packed_bits::Bits::<4>>,
-
+    pub robot_id: u8,
     // True if the robot currently has ball sense
-    #[packed_field(bits="5")]
     pub ball_sense_status: bool,
-
     // Status of the kicker (TODO: Confirm this)
-    #[packed_field(bits="6")]
     pub kick_status: bool,
-
     // Health of the kicker
-    #[packed_field(bits="7")]
     pub kick_healthy: bool,
-
     // Voltage measured by the ADC of the Microcontroller
-    #[packed_field(bits="8..=15")]
-    pub battery_voltage: Integer<u8, packed_bits::Bits::<8>>,
-
+    pub battery_voltage: u8,
     // Erros experienced by the motor (TODO: Doc this better)
-    #[packed_field(bits="16..=20")]
-    pub motor_errors: Integer<u8, packed_bits::Bits::<5>>,
-
+    pub motor_errors: u8,
     // Status of the FPGA
-    #[packed_field(bits="21")]
     pub fpga_status: bool,
+}
 
-    // Unused bits so the encoded deltas line up against a byte boundary
-    #[packed_field(bits="22.=23")]
-    unused: Integer<u8, packed_bits::Bits::<2>>,
+impl RobotStatusMessage {
+    /// Convert the robot status message into a packed representation to send
+    pub fn pack(self) -> [u8; ROBOT_STATUS_SIZE] {
+        let mut buffer = [0u8; ROBOT_STATUS_SIZE];
+        buffer[0] = (self.team as u8) & 0b1
+            | (self.robot_id & 0b1111) << 1
+            | (self.ball_sense_status as u8) << 5
+            | (self.kick_status as u8) << 6
+            | (self.kick_healthy as u8) << 7;
+        buffer[1] = self.battery_voltage;
+        buffer[2] = self.motor_errors & 0b11111 | (self.fpga_status as u8) << 5;
+        buffer
+    }
+
+    /// Convert a buffer of data from packed representation to a rust struct
+    pub fn unpack(data: [u8; ROBOT_STATUS_SIZE]) -> Self {
+        Self {
+            team: if data[0] == 0 {
+                Team::Blue
+            } else {
+                Team::Yellow
+            },
+            robot_id: (data[0] & 0b01111) >> 1,
+            ball_sense_status: data[0] & (0b1 << 5) != 0,
+            kick_status: data[0] & (0b1 << 6) != 0,
+            kick_healthy: data[0] & (0b1 << 7) != 0,
+            battery_voltage: data[1],
+            motor_errors: data[2] & 0b11111,
+            fpga_status: data[0] & (0b1 << 5) != 0,
+        }
+    }
 }
 
 pub struct RobotStatusMessageBuilder {
@@ -132,8 +151,8 @@ impl RobotStatusMessageBuilder {
 
     pub fn build(self) -> RobotStatusMessage {
         let team = match self.team {
-            Some(team) => if team == Team::Blue { false } else { true },
-            None => false,
+            Some(team) => team,
+            None => Team::Blue,
         };
 
         let robot_id = match self.robot_id {
@@ -173,19 +192,18 @@ impl RobotStatusMessageBuilder {
 
         RobotStatusMessage {
             team,
-            robot_id: robot_id.into(),
+            robot_id,
             ball_sense_status,
             kick_status,
             kick_healthy,
-            battery_voltage: battery_voltage.into(),
-            motor_errors: motor_errors.into(),
-            fpga_status: fpga_status.into(),
-            unused: 0.into(),
+            battery_voltage,
+            motor_errors,
+            fpga_status,
         }
     }
 }
 
-#[cfg(feature = "std")]
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -196,15 +214,14 @@ mod tests {
         let robot_status = RobotStatusMessageBuilder::new().build();
 
         let expected = RobotStatusMessage {
-            team: false,
+            team: Team::Blue,
             robot_id: 0.into(),
             ball_sense_status: false,
             kick_status: false,
             kick_healthy: false,
-            battery_voltage: 0.into(),
-            motor_errors: 0.into(),
+            battery_voltage: 0,
+            motor_errors: 0,
             fpga_status: false,
-            unused: 0.into(),
         };
 
         assert_eq!(expected, robot_status);
@@ -226,15 +243,14 @@ mod tests {
             .build();
 
         let expected: RobotStatusMessage = RobotStatusMessage {
-            team: true,
+            team: Team::Yellow,
             robot_id: 1.into(),
             ball_sense_status: true,
             kick_status: true,
             kick_healthy: true,
-            battery_voltage: 10.into(),
-            motor_errors: 2.into(),
+            battery_voltage: 10,
+            motor_errors: 2,
             fpga_status: true,
-            unused: 0.into(),
         };
 
         assert_eq!(expected, robot_status);
@@ -251,7 +267,7 @@ mod tests {
     ///     motor_errors: 0,
     ///     fpga_status: true,
     /// }
-    /// 
+    ///
     /// is as follows:
     ///     1_0001_1_1_0 | 00001010 | 00000_1_00
     ///     ^   ^  ^ ^ ^       ^        ^   ^  ^
@@ -265,7 +281,7 @@ mod tests {
     /// motor_errors---------------------   |  |
     /// fpga_status--------------------------  |
     /// unused----------------------------------
-    /// 
+    ///
     #[test]
     fn test_pack() {
         let robot_status = RobotStatusMessageBuilder::new()
@@ -278,10 +294,7 @@ mod tests {
             .fpga_status(true)
             .build();
 
-        let packed_data = match robot_status.pack() {
-            Ok(bytes) => bytes,
-            Err(err) => panic!("Unable to pack robot status: {:?}", err),
-        };
+        let packed_data = robot_status.pack();
 
         assert_eq!(packed_data.len(), ROBOT_STATUS_SIZE);
         assert_eq!(packed_data[0], 0b1_0001_1_1_0);
@@ -302,7 +315,7 @@ mod tests {
     /// motor_errors---------------------   |  |
     /// fpga_status--------------------------  |
     /// unused----------------------------------
-    /// 
+    ///
     /// is as follows:
     /// RobotStatusMessage {
     ///     team: Yellow (true),
@@ -316,23 +329,19 @@ mod tests {
     #[test]
     fn test_unpack() {
         let status_slice: [u8; 3] = [0b1_0001_1_1_0, 0b00001010, 0b00000_1_00];
-        let robot_status = match RobotStatusMessage::unpack_from_slice(&status_slice[..]) {
-            Ok(status) => status,
-            Err(err) => panic!("Unable to Unpack Robot Status Message: {:?}", err),
-        };
+        let robot_status = RobotStatusMessage::unpack(status_slice);
 
         let expected = RobotStatusMessage {
-            team: true,
-            robot_id: 1.into(),
+            team: Team::Yellow,
+            robot_id: 1,
             ball_sense_status: true,
             kick_status: true,
             kick_healthy: false,
-            battery_voltage: 10.into(),
+            battery_voltage: 10,
             fpga_status: true,
-            motor_errors: 0.into(),
-            unused: 0.into(),
+            motor_errors: 0,
         };
 
-        assert_eq!(expected ,robot_status);
+        assert_eq!(expected, robot_status);
     }
 }

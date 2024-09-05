@@ -1,11 +1,7 @@
 //!
 //! rtp is a library of the cross platform messages that are sent between the base computer
 //! base station, and robots.
-//! 
-
-#![cfg_attr(feature = "nostd", no_std)]
-#[cfg(feature = "nostd")]
-extern crate alloc;
+//!
 
 #[cfg(all(feature = "yellow-team", feature = "blue-team"))]
 panic!("Yellow Team and Blue Team cannot be selected at the same time!!!.");

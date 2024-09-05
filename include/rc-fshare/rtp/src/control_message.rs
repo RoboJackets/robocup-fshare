@@ -1,16 +1,10 @@
-//! 
+//!
 //! The Control Message is sent to robots over radio to inform them of what actions to take.
-//! 
+//!
 
 #![allow(dead_code)]
 
-#[cfg(feature = "nostd")]
-use alloc::format;
-
-#[cfg(feature = "nostd")]
 use nalgebra::base::*;
-
-use packed_struct::prelude::*;
 
 use crate::Team;
 
@@ -52,69 +46,118 @@ impl Into<bool> for ShootMode {
 }
 
 /// The Control Message is Sent from the Base Station to the Robots.
-/// 
+///
+/// The Packed Format of this message is as follows:
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+/// |    0    |    1    |    2    |    3    |    4    |    5    |    6    |    7    |
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+/// | team    | robot id                              | shoot_m | trigger_mode      |
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+/// | body_x (lsb)                                                                  |
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+/// | body_x (msb)                                                                  |
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+/// | body_y (lsb)                                                                  |
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+/// | body_y (msb)                                                                  |
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+/// | body_w (lsb)                                                                  |
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+/// | body_w (msb)                                                                  |
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+/// | dribbler_speed                                                                |
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+/// | kick_strength                                                                 |
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+/// | role              | unused                                                    |
+/// +---------+---------+---------+---------+---------+---------+---------+---------+
+///
 /// Size = 80 Bits = 10 Bytes
-#[derive(PackedStruct, Clone, Copy, Debug, PartialEq, Eq)]
-#[packed_struct(bit_numbering="msb0", endian="lsb")]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ControlMessage {
-    // Team of the Robot (0: Blue) (1: Yellow)
-    #[packed_field(bits="0")]
-    pub team: bool,
-
-    // Id of the Robot
-    #[packed_field(bits="1..=4")]
-    pub robot_id: Integer<u8, packed_bits::Bits::<4>>,
-
+    /// Team of the Robot (0: Blue) (1: Yellow)
+    pub team: Team,
+    /// Id of the Robot
+    pub robot_id: u8,
     // Mode of kicking for the robot
-    // 0 -> Kick
-    // 1 -> Chip
-    #[packed_field(bits="5")]
-    pub shoot_mode: bool,
-
+    pub shoot_mode: ShootMode,
     // Trigger Mode for the Robot (TODO: Finish Docs)
-    #[packed_field(bits="6..=7")]
-    pub trigger_mode: Integer<u8, packed_bits::Bits::<2>>,
-
+    pub trigger_mode: TriggerMode,
     // X Coordinate of the Robot's Body Frame (multiplied by VELOCITY_SCALE_FACTOR
     // and truncated)
-    #[packed_field(bits="8..=23")]
-    pub body_x: Integer<i16, packed_bits::Bits::<16>>,
-
+    pub body_x: i16,
     // Y Coordinate of the Robot's Body Frame (multiplied by VELOCITY_SCALE_FACTOR
     // and truncated)
-    #[packed_field(bits="24..=39")]
-    pub body_y: Integer<i16, packed_bits::Bits::<16>>,
-
+    pub body_y: i16,
     // W Coordinate of the Robot's Body Frame (multiplied by VELOCITY_SCALE_FACTOR
     // and truncated))
-    #[packed_field(bits="40..=55")]
-    pub body_w: Integer<i16, packed_bits::Bits::<16>>,
-
+    pub body_w: i16,
     // Speed of the dribbler (TODO: Determine Units)
-    #[packed_field(bits="56..=63")]
-    pub dribbler_speed: Integer<i8, packed_bits::Bits::<8>>,
-
+    pub dribbler_speed: i8,
     // Strength of the kicker on kick (TODO: Determine Units)
-    #[packed_field(bits="64..=71")]
-    pub kick_strength: Integer<u8, packed_bits::Bits::<8>>,
-
+    pub kick_strength: u8,
     // Role of This Robot (TODO: Finish Docs)
-    #[packed_field(bits="72..=73")]
-    pub role: Integer<u8, packed_bits::Bits<2>>,
-
-    // Unused Bits to make this struct an even byte length
-    #[packed_field(bits="74..=79")]
-    unused: Integer<u8, packed_bits::Bits::<6>>,
+    pub role: u8,
 }
 
 impl ControlMessage {
-    #![cfg(feature = "nostd")]
+    /// Get the velocity (x, y, w) from the control message in a vector
     pub fn get_velocity(&self) -> Vector3<f32> {
         Vector3::new(
-            (*self.body_x as f32) / VELOCITY_SCALE_FACTOR,
-            (*self.body_y as f32) / VELOCITY_SCALE_FACTOR,
-            (*self.body_w as f32) / VELOCITY_SCALE_FACTOR,
+            (self.body_x as f32) / VELOCITY_SCALE_FACTOR,
+            (self.body_y as f32) / VELOCITY_SCALE_FACTOR,
+            (self.body_w as f32) / VELOCITY_SCALE_FACTOR,
         )
+    }
+
+    /// Pack the control message into an array
+    pub fn pack(self) -> [u8; CONTROL_MESSAGE_SIZE] {
+        let mut buffer = [0u8; CONTROL_MESSAGE_SIZE];
+        buffer[0] = (self.team as u8) & 0b1
+            | (self.robot_id & 0b1111) << 1
+            | ((self.shoot_mode as u8) & 0b1) << 5
+            | ((self.trigger_mode as u8) & 0b11) << 6;
+        let bytes = self.body_x.to_le_bytes();
+        buffer[1] = bytes[0];
+        buffer[2] = bytes[1];
+        let bytes = self.body_y.to_le_bytes();
+        buffer[3] = bytes[0];
+        buffer[4] = bytes[1];
+        let bytes = self.body_w.to_le_bytes();
+        buffer[5] = bytes[0];
+        buffer[6] = bytes[1];
+        buffer[7] = self.dribbler_speed.to_le_bytes()[0];
+        buffer[8] = self.kick_strength;
+        buffer[9] = self.role;
+        buffer
+    }
+
+    /// Unpack from the control message from an array
+    pub fn unpack(data: [u8; CONTROL_MESSAGE_SIZE]) -> Self {
+        Self {
+            team: if data[0] & 0b1 == 0 {
+                Team::Blue
+            } else {
+                Team::Yellow
+            },
+            robot_id: (data[0] & 0b1111) >> 1,
+            shoot_mode: if data[0] & (0b1 << 5) != 0 {
+                ShootMode::Chip
+            } else {
+                ShootMode::Kick
+            },
+            trigger_mode: match (data[0] & (0b11 << 6)) >> 6 {
+                1 => TriggerMode::Immediate,
+                2 => TriggerMode::OnBreakBeam,
+                _ => TriggerMode::StandDown,
+            },
+            body_x: i16::from_le_bytes(data[1..=2].try_into().unwrap()),
+            body_y: i16::from_le_bytes(data[3..=4].try_into().unwrap()),
+            body_w: i16::from_le_bytes(data[5..=6].try_into().unwrap()),
+            dribbler_speed: i8::from_le_bytes([data[7]]),
+            kick_strength: data[8],
+            role: data[9],
+        }
     }
 }
 
@@ -199,8 +242,8 @@ impl ControlMessageBuilder {
 
     pub fn build(self) -> ControlMessage {
         let team = match self.team {
-            Some(team) => if team == Team::Blue { false } else { true },
-            None => false,
+            Some(team) => team,
+            None => Team::Blue,
         };
 
         let robot_id = match self.robot_id {
@@ -210,12 +253,12 @@ impl ControlMessageBuilder {
 
         let shoot_mode = match self.shoot_mode {
             Some(shoot_mode) => shoot_mode.into(),
-            None => false,
+            None => ShootMode::Kick,
         };
 
         let trigger_mode = match self.trigger_mode {
             Some(trigger_mode) => trigger_mode.into(),
-            None => 0,
+            None => TriggerMode::StandDown,
         };
 
         let body_x = match self.body_x {
@@ -250,21 +293,20 @@ impl ControlMessageBuilder {
 
         ControlMessage {
             team,
-            robot_id: robot_id.into(),
+            robot_id,
             shoot_mode,
-            trigger_mode: trigger_mode.into(),
-            body_x: body_x.into(),
-            body_y: body_y.into(),
-            body_w: body_w.into(),
-            dribbler_speed: dribbler_speed.into(),
-            kick_strength: kick_strength.into(),
-            role: role.into(),
-            unused: 0.into(),
+            trigger_mode,
+            body_x,
+            body_y,
+            body_w,
+            dribbler_speed,
+            kick_strength,
+            role,
         }
     }
 }
 
-#[cfg(feature = "std")]
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -275,17 +317,16 @@ mod tests {
         let control_message = ControlMessageBuilder::new().build();
 
         let expected = ControlMessage {
-            team: false,
-            robot_id: 0.into(),
-            shoot_mode: false,
-            trigger_mode: 0.into(),
-            body_x: 0.into(),
-            body_y: 0.into(),
-            body_w: 0.into(),
-            dribbler_speed: 0.into(),
-            kick_strength: 0.into(),
-            role: 0.into(),
-            unused: 0.into(),
+            team: Team::Blue,
+            robot_id: 0,
+            shoot_mode: ShootMode::Kick,
+            trigger_mode: TriggerMode::StandDown,
+            body_x: 0,
+            body_y: 0,
+            body_w: 0,
+            dribbler_speed: 0,
+            kick_strength: 0,
+            role: 0,
         };
 
         assert_eq!(expected, control_message);
@@ -309,17 +350,16 @@ mod tests {
             .build();
 
         let expected = ControlMessage {
-            team: true,
-            robot_id: 3.into(),
-            shoot_mode: true,
-            trigger_mode: 2.into(),
-            body_x: 20_000.into(),
-            body_y: 10_000.into(),
-            body_w: 32_767.into(),
-            dribbler_speed: (-5).into(),
-            kick_strength: 3.into(),
-            role: 1.into(),
-            unused: 0.into(),
+            team: Team::Yellow,
+            robot_id: 3,
+            shoot_mode: ShootMode::Chip,
+            trigger_mode: TriggerMode::OnBreakBeam,
+            body_x: 20_000,
+            body_y: 10_000,
+            body_w: 32_767,
+            dribbler_speed: -5,
+            kick_strength: 3,
+            role: 1,
         };
 
         assert_eq!(expected, control_message);
@@ -337,7 +377,7 @@ mod tests {
     ///     dribbler_speed: -5,
     ///     role: 1,
     /// }
-    /// 
+    ///
     /// is as follows:
     ///     1_0011_1_10 | 00100000 | 01001110 | 00010000 | 00100111 | ...
     ///     ^   ^  ^  ^       ^          ^         ^          ^
@@ -350,7 +390,7 @@ mod tests {
     /// body_x (msb)----------------------         |          |
     /// body_y (lsb)--------------------------------          |
     /// body_y (msb)-------------------------------------------
-    /// 
+    ///
     ///     11111111 | 01111111 | 11111011 | 00000011 | 01_000000
     ///         ^          ^          ^          ^       ^    ^
     ///         |          |          |          |       |    |
@@ -375,10 +415,7 @@ mod tests {
             .role(1)
             .build();
 
-        let packed_data = match control_message.pack() {
-            Ok(bytes) => bytes,
-            Err(err) => panic!("Unable to pack control message: {:?}", err),
-        };
+        let packed_data = control_message.pack();
 
         assert_eq!(packed_data.len(), CONTROL_MESSAGE_SIZE);
         assert_eq!(packed_data[0], 0b1_0011_1_10);
@@ -405,7 +442,7 @@ mod tests {
     /// body_x (msb)----------------------         |          |
     /// body_y (lsb)--------------------------------          |
     /// body_y (msb)-------------------------------------------
-    /// 
+    ///
     ///     11111111 | 01111111 | 11111011 | 00000011 | 01_000000
     ///         ^          ^          ^          ^       ^    ^
     ///         |          |          |          |       |    |
@@ -415,7 +452,7 @@ mod tests {
     /// kick_strength-----------------------------       |    |
     /// role----------------------------------------------    |
     /// unused-------------------------------------------------
-    /// 
+    ///
     /// is as follows:
     /// ControlMessage {
     ///     team: Yellow (false),
@@ -430,26 +467,32 @@ mod tests {
     /// }
     #[test]
     fn test_unpack() {
-        let data = [0b1_0011_1_10, 0b00100000, 0b01001110, 0b00010000, 0b00100111,
-                               0b11111111, 0b01111111, 0b11111011, 0b00000011, 0b01_000000];
+        let data = [
+            0b1_0011_1_10,
+            0b00100000,
+            0b01001110,
+            0b00010000,
+            0b00100111,
+            0b11111111,
+            0b01111111,
+            0b11111011,
+            0b00000011,
+            0b01_000000,
+        ];
 
-        let control_message = match ControlMessage::unpack_from_slice(&data[..]) {
-            Ok(control_message) => control_message,
-            Err(err) => panic!("Unable to Unpack Control Message: {:?}", err),
-        };
+        let control_message = ControlMessage::unpack(data);
 
         let expected = ControlMessage {
-            team: true,
-            robot_id: 3.into(),
-            shoot_mode: true,
-            trigger_mode: 2.into(),
-            body_x: 20_000.into(),
-            body_y: 10_000.into(),
-            body_w: 32_767.into(),
-            dribbler_speed: (-5).into(),
-            kick_strength: 3.into(),
-            role: 1.into(),
-            unused: 0.into(),
+            team: Team::Yellow,
+            robot_id: 3,
+            shoot_mode: ShootMode::Chip,
+            trigger_mode: TriggerMode::OnBreakBeam,
+            body_x: 20_000,
+            body_y: 10_000,
+            body_w: 32_767,
+            dribbler_speed: -5,
+            kick_strength: 3,
+            role: 1,
         };
 
         assert_eq!(expected, control_message);
