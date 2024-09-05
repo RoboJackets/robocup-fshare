@@ -21,7 +21,7 @@ pub const ROBOT_STATUS_SIZE: usize = 3;
 ///
 /// The RobotStatusMessage has the following format:
 /// +---------+---------+---------+---------+---------+---------+---------+---------+
-/// |    0    |    1    |    2    |    3    |    4    |    5    |    6    |    7    |
+/// |    7    |    6    |    5    |    4    |    3    |    2    |    1    |    0    |
 /// +---------+---------+---------+---------+---------+---------+---------+---------+
 /// | team    | robot_id                              | b_sense | k_status| k_health|
 /// +---------+---------+---------+---------+---------+---------+---------+---------+
@@ -55,31 +55,31 @@ impl RobotStatusMessage {
     /// Convert the robot status message into a packed representation to send
     pub fn pack(self) -> [u8; ROBOT_STATUS_SIZE] {
         let mut buffer = [0u8; ROBOT_STATUS_SIZE];
-        buffer[0] = (self.team as u8) & 0b1
-            | (self.robot_id & 0b1111) << 1
-            | (self.ball_sense_status as u8) << 5
-            | (self.kick_status as u8) << 6
-            | (self.kick_healthy as u8) << 7;
+        buffer[0] = (self.team as u8) << 7
+            | ((self.robot_id) & 0b1111) << 3
+            | (self.ball_sense_status as u8) << 2
+            | (self.kick_status as u8) << 1
+            | self.kick_healthy as u8;
         buffer[1] = self.battery_voltage;
-        buffer[2] = self.motor_errors & 0b11111 | (self.fpga_status as u8) << 5;
+        buffer[2] = (self.motor_errors & 0b11111) << 3 | (self.fpga_status as u8) << 2;
         buffer
     }
 
     /// Convert a buffer of data from packed representation to a rust struct
     pub fn unpack(data: [u8; ROBOT_STATUS_SIZE]) -> Self {
         Self {
-            team: if data[0] == 0 {
+            team: if data[0] & (0b1 << 7) == 0 {
                 Team::Blue
             } else {
                 Team::Yellow
             },
-            robot_id: (data[0] & 0b01111) >> 1,
-            ball_sense_status: data[0] & (0b1 << 5) != 0,
-            kick_status: data[0] & (0b1 << 6) != 0,
-            kick_healthy: data[0] & (0b1 << 7) != 0,
+            robot_id: (data[0] & (0b1111 << 3)) >> 3,
+            ball_sense_status: data[0] & (0b1 << 2) != 0,
+            kick_status: data[0] & (0b1 << 1) != 0,
+            kick_healthy: data[0] & 0b1 != 0,
             battery_voltage: data[1],
-            motor_errors: data[2] & 0b11111,
-            fpga_status: data[0] & (0b1 << 5) != 0,
+            motor_errors: (data[2] & (0b11111 << 3)) >> 3,
+            fpga_status: data[2] & (0b1 << 2) != 0,
         }
     }
 }

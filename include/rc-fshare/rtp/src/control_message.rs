@@ -49,7 +49,7 @@ impl Into<bool> for ShootMode {
 ///
 /// The Packed Format of this message is as follows:
 /// +---------+---------+---------+---------+---------+---------+---------+---------+
-/// |    0    |    1    |    2    |    3    |    4    |    5    |    6    |    7    |
+/// |    7    |    6    |    5    |    4    |    3    |    2    |    1    |    0    |
 /// +---------+---------+---------+---------+---------+---------+---------+---------+
 /// | team    | robot id                              | shoot_m | trigger_mode      |
 /// +---------+---------+---------+---------+---------+---------+---------+---------+
@@ -113,10 +113,10 @@ impl ControlMessage {
     /// Pack the control message into an array
     pub fn pack(self) -> [u8; CONTROL_MESSAGE_SIZE] {
         let mut buffer = [0u8; CONTROL_MESSAGE_SIZE];
-        buffer[0] = (self.team as u8) & 0b1
-            | (self.robot_id & 0b1111) << 1
-            | ((self.shoot_mode as u8) & 0b1) << 5
-            | ((self.trigger_mode as u8) & 0b11) << 6;
+        buffer[0] = ((self.team as u8) & 0b1) << 7
+            | (self.robot_id & 0b1111) << 3
+            | ((self.shoot_mode as u8) & 0b1) << 2
+            | (self.trigger_mode as u8) & 0b11;
         let bytes = self.body_x.to_le_bytes();
         buffer[1] = bytes[0];
         buffer[2] = bytes[1];
@@ -128,25 +128,25 @@ impl ControlMessage {
         buffer[6] = bytes[1];
         buffer[7] = self.dribbler_speed.to_le_bytes()[0];
         buffer[8] = self.kick_strength;
-        buffer[9] = self.role;
+        buffer[9] = (self.role & 0b11) << 6;
         buffer
     }
 
     /// Unpack from the control message from an array
     pub fn unpack(data: [u8; CONTROL_MESSAGE_SIZE]) -> Self {
         Self {
-            team: if data[0] & 0b1 == 0 {
+            team: if data[0] & (0b1 << 7) == 0 {
                 Team::Blue
             } else {
                 Team::Yellow
             },
-            robot_id: (data[0] & 0b1111) >> 1,
-            shoot_mode: if data[0] & (0b1 << 5) != 0 {
+            robot_id: (data[0] & (0b1111 << 3)) >> 3,
+            shoot_mode: if data[0] & (0b1 << 2) != 0 {
                 ShootMode::Chip
             } else {
                 ShootMode::Kick
             },
-            trigger_mode: match (data[0] & (0b11 << 6)) >> 6 {
+            trigger_mode: match data[0] & 0b11 {
                 1 => TriggerMode::Immediate,
                 2 => TriggerMode::OnBreakBeam,
                 _ => TriggerMode::StandDown,
@@ -156,7 +156,7 @@ impl ControlMessage {
             body_w: i16::from_le_bytes(data[5..=6].try_into().unwrap()),
             dribbler_speed: i8::from_le_bytes([data[7]]),
             kick_strength: data[8],
-            role: data[9],
+            role: (data[6] & (0b11 << 6)) >> 6,
         }
     }
 }
