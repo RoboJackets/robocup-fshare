@@ -8,6 +8,11 @@ authors = ["Nathaniel Wert <n8.wert.b@gmail.com>"]
 
 [dependencies]
 
+[dependencies.ncomm-utils]
+version = "1.0.0"
+default-features = false
+features = ["nostd"]
+
 [dependencies.nalgebra]
 version = "0.32.3"
 default-features = false

@@ -5,6 +5,7 @@
 #![allow(dead_code)]
 
 use nalgebra::base::*;
+use ncomm_utils::packing::{Packable, PackingError};
 
 use crate::Team;
 
@@ -109,10 +110,18 @@ impl ControlMessage {
             (self.body_w as f32) / VELOCITY_SCALE_FACTOR,
         )
     }
+}
 
-    /// Pack the control message into an array
-    pub fn pack(self) -> [u8; CONTROL_MESSAGE_SIZE] {
-        let mut buffer = [0u8; CONTROL_MESSAGE_SIZE];
+impl Packable for ControlMessage {
+    fn len() -> usize {
+        CONTROL_MESSAGE_SIZE
+    }
+
+    fn pack(self, buffer: &mut [u8]) -> Result<(), PackingError> {
+        if buffer.len() < CONTROL_MESSAGE_SIZE {
+            return Err(PackingError::InvalidBufferSize);
+        }
+
         buffer[0] = ((self.team as u8) & 0b1) << 7
             | (self.robot_id & 0b1111) << 3
             | ((self.shoot_mode as u8) & 0b1) << 2
@@ -129,12 +138,15 @@ impl ControlMessage {
         buffer[7] = self.dribbler_speed.to_le_bytes()[0];
         buffer[8] = self.kick_strength;
         buffer[9] = (self.role & 0b11) << 6;
-        buffer
+        Ok(())
     }
 
-    /// Unpack from the control message from an array
-    pub fn unpack(data: [u8; CONTROL_MESSAGE_SIZE]) -> Self {
-        Self {
+    fn unpack(data: &[u8]) -> Result<Self, PackingError> {
+        if data.len() < CONTROL_MESSAGE_SIZE {
+            return Err(PackingError::InvalidBufferSize);
+        }
+        
+        Ok(Self {
             team: if data[0] & (0b1 << 7) == 0 {
                 Team::Blue
             } else {
@@ -157,7 +169,7 @@ impl ControlMessage {
             dribbler_speed: i8::from_le_bytes([data[7]]),
             kick_strength: data[8],
             role: (data[6] & (0b11 << 6)) >> 6,
-        }
+        })
     }
 }
 
@@ -415,7 +427,8 @@ mod tests {
             .role(1)
             .build();
 
-        let packed_data = control_message.pack();
+        let mut packed_data = [0u8; CONTROL_MESSAGE_SIZE];
+        control_message.pack(&mut packed_data).unwrap();
 
         assert_eq!(packed_data.len(), CONTROL_MESSAGE_SIZE);
         assert_eq!(packed_data[0], 0b1_0011_1_10);
@@ -480,7 +493,7 @@ mod tests {
             0b01_000000,
         ];
 
-        let control_message = ControlMessage::unpack(data);
+        let control_message = ControlMessage::unpack(&data).unwrap();
 
         let expected = ControlMessage {
             team: Team::Yellow,

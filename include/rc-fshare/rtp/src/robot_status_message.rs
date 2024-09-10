@@ -4,6 +4,7 @@
 
 #![allow(dead_code)]
 
+use ncomm_utils::packing::{Packable, PackingError};
 use crate::Team;
 
 /// battery_voltage is a direct reading from the micrcontroller's ADC
@@ -51,10 +52,16 @@ pub struct RobotStatusMessage {
     pub fpga_status: bool,
 }
 
-impl RobotStatusMessage {
-    /// Convert the robot status message into a packed representation to send
-    pub fn pack(self) -> [u8; ROBOT_STATUS_SIZE] {
-        let mut buffer = [0u8; ROBOT_STATUS_SIZE];
+impl Packable for RobotStatusMessage {
+    fn len() -> usize {
+       ROBOT_STATUS_SIZE 
+    }
+
+    fn pack(self, buffer: &mut [u8]) -> Result<(), PackingError> {
+        if buffer.len() < ROBOT_STATUS_SIZE {
+            return Err(PackingError::InvalidBufferSize);
+        }
+
         buffer[0] = (self.team as u8) << 7
             | ((self.robot_id) & 0b1111) << 3
             | (self.ball_sense_status as u8) << 2
@@ -62,12 +69,15 @@ impl RobotStatusMessage {
             | self.kick_healthy as u8;
         buffer[1] = self.battery_voltage;
         buffer[2] = (self.motor_errors & 0b11111) << 3 | (self.fpga_status as u8) << 2;
-        buffer
+        Ok(())
     }
 
-    /// Convert a buffer of data from packed representation to a rust struct
-    pub fn unpack(data: [u8; ROBOT_STATUS_SIZE]) -> Self {
-        Self {
+    fn unpack(data: &[u8]) -> Result<Self, PackingError> {
+        if data.len() < ROBOT_STATUS_SIZE {
+            return Err(PackingError::InvalidBufferSize);
+        }
+
+        Ok(Self {
             team: if data[0] & (0b1 << 7) == 0 {
                 Team::Blue
             } else {
@@ -80,7 +90,7 @@ impl RobotStatusMessage {
             battery_voltage: data[1],
             motor_errors: (data[2] & (0b11111 << 3)) >> 3,
             fpga_status: data[2] & (0b1 << 2) != 0,
-        }
+        })
     }
 }
 
@@ -294,7 +304,8 @@ mod tests {
             .fpga_status(true)
             .build();
 
-        let packed_data = robot_status.pack();
+        let mut packed_data = [0u8; ROBOT_STATUS_SIZE];
+        robot_status.pack(&mut packed_data).unwrap();
 
         assert_eq!(packed_data.len(), ROBOT_STATUS_SIZE);
         assert_eq!(packed_data[0], 0b1_0001_1_1_0);
@@ -329,7 +340,7 @@ mod tests {
     #[test]
     fn test_unpack() {
         let status_slice: [u8; 3] = [0b1_0001_1_1_0, 0b00001010, 0b00000_1_00];
-        let robot_status = RobotStatusMessage::unpack(status_slice);
+        let robot_status = RobotStatusMessage::unpack(&status_slice).unwrap();
 
         let expected = RobotStatusMessage {
             team: Team::Yellow,
