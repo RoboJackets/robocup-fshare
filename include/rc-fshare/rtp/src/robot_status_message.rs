@@ -34,21 +34,21 @@ pub const ROBOT_STATUS_SIZE: usize = 3;
 /// Size = 3 Bytes
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RobotStatusMessage {
-    // Team of the RObot (0: Blue) (1: Yellow)
+    /// Team of the RObot (0: Blue) (1: Yellow)
     pub team: Team,
-    // Id of the Robot
+    /// Id of the Robot
     pub robot_id: u8,
-    // True if the robot currently has ball sense
+    /// True if the robot currently has ball sense
     pub ball_sense_status: bool,
-    // Status of the kicker (TODO: Confirm this)
+    /// Status of the kicker (TODO: Confirm this)
     pub kick_status: bool,
-    // Health of the kicker
+    /// Health of the kicker
     pub kick_healthy: bool,
-    // Voltage measured by the ADC of the Microcontroller
+    /// Voltage measured by the ADC of the Microcontroller
     pub battery_voltage: u8,
-    // Erros experienced by the motor (TODO: Doc this better)
+    /// Errors experienced by the motor (TODO: Doc this better)
     pub motor_errors: u8,
-    // Status of the FPGA
+    /// Status of the FPGA
     pub fpga_status: bool,
 }
 
@@ -94,18 +94,29 @@ impl Packable for RobotStatusMessage {
     }
 }
 
+/// Builder helper to create a robot status message
 pub struct RobotStatusMessageBuilder {
+    /// The team of the robot status message
     pub team: Option<Team>,
+    /// The robot id of the robot status message
     pub robot_id: Option<u8>,
+    /// Whether or not the robot status message has ball sense
     pub ball_sense_status: Option<bool>,
+    /// Whether or not the robot status message is kicking
     pub kick_status: Option<bool>,
+    /// Whether or not the robot status message has a healthy kicker
     pub kick_healthy: Option<bool>,
+    /// The battery voltage of the robot status message
     pub battery_voltage: Option<u8>,
+    /// Any errors associated with the robot status message
     pub motor_errors: Option<u8>,
+    /// The status of the fpga in the robot status message
     pub fpga_status: Option<bool>,
 }
 
 impl RobotStatusMessageBuilder {
+    /// Instantiate a new RobotStatusMessageBuilder to allow for the creation of
+    /// a new RobotStatusMessage
     pub fn new() -> Self {
         Self {
             team: None,
@@ -119,46 +130,55 @@ impl RobotStatusMessageBuilder {
         }
     }
 
+    /// Assign the team for the robot status message
     pub fn team(mut self, team: Team) -> Self {
         self.team = Some(team);
         self
     }
 
+    /// Assign the robot id for the robot status message
     pub fn robot_id(mut self, robot_id: u8) -> Self {
         self.robot_id = Some(robot_id);
         self
     }
 
+    /// Assign the ball sense status for the robot status message
     pub fn ball_sense_status(mut self, ball_sense_status: bool) -> Self {
         self.ball_sense_status = Some(ball_sense_status);
         self
     }
 
+    /// Assign the kick status for the robot status message
     pub fn kick_status(mut self, kick_status: bool) -> Self {
         self.kick_status = Some(kick_status);
         self
     }
 
+    /// Assign whether the kicker is healthy for the robot status message
     pub fn kick_healthy(mut self, kick_healthy: bool) -> Self {
         self.kick_healthy = Some(kick_healthy);
         self
     }
 
+    /// Assign the battery voltage for the robot status message
     pub fn battery_voltage(mut self, battery_voltage: u8) -> Self {
         self.battery_voltage = Some(battery_voltage);
         self
     }
 
+    /// Assign the motor errors for the robot status message
     pub fn motor_errors(mut self, motor_errors: u8) -> Self {
         self.motor_errors = Some(motor_errors);
         self
     }
 
+    /// Assign the fpga status for the robot status message
     pub fn fpga_status(mut self, fpga_status: bool) -> Self {
         self.fpga_status = Some(fpga_status);
         self
     }
 
+    /// Build a new RobotStatusMessage from the assigned fields on the builder
     pub fn build(self) -> RobotStatusMessage {
         let team = match self.team {
             Some(team) => team,

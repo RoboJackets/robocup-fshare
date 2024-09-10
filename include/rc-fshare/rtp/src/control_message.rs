@@ -20,8 +20,11 @@ pub const CONTROL_MESSAGE_SIZE: usize = 10;
 /// The Trigger Mode Kicking
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TriggerMode {
+    /// Slowly expel the charge in the kicker
     StandDown = 0,
+    /// Immediately activate the kicker
     Immediate = 1,
+    /// Activate the kicker on the next break beam trip
     OnBreakBeam = 2,
 }
 
@@ -32,8 +35,11 @@ impl Into<u8> for TriggerMode {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+/// How the robot should kick the ball
 pub enum ShootMode {
+    /// The robot should kick the ball
     Kick = 0,
+    /// The robot should chip the ball
     Chip = 1,
 }
 
@@ -80,24 +86,24 @@ pub struct ControlMessage {
     pub team: Team,
     /// Id of the Robot
     pub robot_id: u8,
-    // Mode of kicking for the robot
+    /// Mode of kicking for the robot
     pub shoot_mode: ShootMode,
-    // Trigger Mode for the Robot (TODO: Finish Docs)
+    /// Trigger Mode for the Robot (TODO: Finish Docs)
     pub trigger_mode: TriggerMode,
-    // X Coordinate of the Robot's Body Frame (multiplied by VELOCITY_SCALE_FACTOR
-    // and truncated)
+    /// X Coordinate of the Robot's Body Frame (multiplied by VELOCITY_SCALE_FACTOR
+    /// and truncated)
     pub body_x: i16,
-    // Y Coordinate of the Robot's Body Frame (multiplied by VELOCITY_SCALE_FACTOR
-    // and truncated)
+    /// Y Coordinate of the Robot's Body Frame (multiplied by VELOCITY_SCALE_FACTOR
+    /// and truncated)
     pub body_y: i16,
-    // W Coordinate of the Robot's Body Frame (multiplied by VELOCITY_SCALE_FACTOR
-    // and truncated))
+    /// W Coordinate of the Robot's Body Frame (multiplied by VELOCITY_SCALE_FACTOR
+    /// and truncated))
     pub body_w: i16,
-    // Speed of the dribbler (TODO: Determine Units)
+    /// Speed of the dribbler (TODO: Determine Units)
     pub dribbler_speed: i8,
-    // Strength of the kicker on kick (TODO: Determine Units)
+    /// Strength of the kicker on kick (TODO: Determine Units)
     pub kick_strength: u8,
-    // Role of This Robot (TODO: Finish Docs)
+    /// Role of This Robot (TODO: Finish Docs)
     pub role: u8,
 }
 
@@ -173,20 +179,32 @@ impl Packable for ControlMessage {
     }
 }
 
+/// Builder for a Control Message
 pub struct ControlMessageBuilder {
+    /// The message's team
     pub team: Option<Team>,
+    /// The message's robot_id
     pub robot_id: Option<u8>,
+    /// The message's shoot mode
     pub shoot_mode: Option<ShootMode>,
+    /// The message's trigger mode
     pub trigger_mode: Option<TriggerMode>,
+    /// The message's body velocity in the x direction
     pub body_x: Option<i16>,
+    /// The message's body velocity in the y direction
     pub body_y: Option<i16>,
+    /// The message's body velocity in the w direction
     pub body_w: Option<i16>,
+    /// The speed of the dribbler
     pub dribbler_speed: Option<i8>,
+    /// The strength of the kicker (used to charge the kicker)
     pub kick_strength: Option<u8>,
+    /// The role the robot is playing
     pub role: Option<u8>,
 }
 
 impl ControlMessageBuilder {
+    /// Start building a new control message
     pub fn new() -> Self {
         Self {
             team: None,
@@ -202,56 +220,67 @@ impl ControlMessageBuilder {
         }
     }
 
+    /// Assign the team for the control message
     pub fn team(mut self, team: Team) -> Self {
         self.team = Some(team);
         self
     }
-
+    
+    /// Assign the robot_id for the control message
     pub fn robot_id(mut self, robot_id: u8) -> Self {
         self.robot_id = Some(robot_id);
         self
     }
-
+    
+    /// Assign the shoot mode for the control message
     pub fn shoot_mode(mut self, shoot_mode: ShootMode) -> Self {
         self.shoot_mode = Some(shoot_mode);
         self
     }
 
+    /// Assign the trigger mode for the control message
     pub fn trigger_mode(mut self, trigger_mode: TriggerMode) -> Self {
         self.trigger_mode = Some(trigger_mode);
         self
     }
 
+    /// Assign the x-direction body velocity for the control message
     pub fn body_x(mut self, body_x: f32) -> Self {
         self.body_x = Some((body_x * VELOCITY_SCALE_FACTOR) as i16);
         self
     }
 
+    /// Assign the y-direction body velocity for the control message
     pub fn body_y(mut self, body_y: f32) -> Self {
         self.body_y = Some((body_y * VELOCITY_SCALE_FACTOR) as i16);
         self
     }
-
+    
+    /// Assign the w-direction body velocity for the control message
     pub fn body_w(mut self, body_w: f32) -> Self {
         self.body_w = Some((body_w * VELOCITY_SCALE_FACTOR) as i16);
         self
     }
 
+    /// Assign the dribbler velocity for the control message
     pub fn dribbler_speed(mut self, dribbler_speed: i8) -> Self {
         self.dribbler_speed = Some(dribbler_speed);
         self
     }
 
+    /// Assign the kick strength for the control message
     pub fn kick_strength(mut self, kick_strength: u8) -> Self {
         self.kick_strength = Some(kick_strength);
         self
     }
 
+    /// Assign the role for the control message
     pub fn role(mut self, role: u8) -> Self {
         self.role = Some(role);
         self
     }
 
+    /// Build the control message from the assigned fields.
     pub fn build(self) -> ControlMessage {
         let team = match self.team {
             Some(team) => team,
