@@ -3,6 +3,7 @@
 //! base station, and robots.
 //!
 
+#![no_std]
 #![deny(missing_docs)]
 
 #[cfg(all(feature = "yellow-team", feature = "blue-team"))]
