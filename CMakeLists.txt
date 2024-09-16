@@ -1,7 +1,9 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.16.3)
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 17 CACHE STRING "")
+set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "")
+set(CMAKE_C_STANDARD 11 CACHE STRING "")
+set(CMAKE_C_STANDARD_REQUIRED ON CACHE BOOL "")
 
 find_package(Eigen3 REQUIRED)
 
@@ -16,7 +18,6 @@ if (TARGET Eigen3::Eigen)
 else (TARGET Eigen3::Eigen)
     target_include_directories(rc-fshare PUBLIC ${EIGEN_INCLUDE_DIR})
 endif (TARGET Eigen3::Eigen)
-
 
 # All headers are assumed to be needed for the interface (PUBLIC)
 target_include_directories(rc-fshare PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -36,36 +37,14 @@ find_package(Git REQUIRED)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/src/git_version.cpp.in
     "#include \"rc-fshare/git_version.hpp\"\n"
     "const char *git_version_hash = \"@GIT_HASH@\";\n"
-    "const char *git_version_short_hash = \"@GIT_SHORT_HASH@\";\n"
-    "const char *git_head_date = \"@GIT_DATE@\";\n"
-    "const char *git_head_author = \"@GIT_AUTHOR@\";\n"
-    "const bool git_version_dirty = (bool)@GIT_DIRTY@;\n"
 )
+
 # create version.cmake, which is a cmake script to write git_version.cpp from the template file generated above
 file(WRITE ${CMAKE_BINARY_DIR}/version.cmake
     "EXECUTE_PROCESS(
         COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
         OUTPUT_VARIABLE GIT_HASH
         OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    EXECUTE_PROCESS(
-        COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
-        OUTPUT_VARIABLE GIT_SHORT_HASH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    EXECUTE_PROCESS(
-        COMMAND ${GIT_EXECUTABLE} log -1 --format=%cd
-        OUTPUT_VARIABLE GIT_DATE
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    EXECUTE_PROCESS(
-        COMMAND ${GIT_EXECUTABLE} log -1 --format=%aN
-        OUTPUT_VARIABLE GIT_AUTHOR
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    EXECUTE_PROCESS(
-        COMMAND ${GIT_EXECUTABLE} diff --quiet
-        RESULT_VARIABLE GIT_DIRTY
     )
     CONFIGURE_FILE(\${SRC} \${DST} @ONLY)
 ")
