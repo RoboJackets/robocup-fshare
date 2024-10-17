@@ -20,5 +20,3 @@ features = ["libm", "nalgebra-macros"]
 
 [features]
 default = []
-yellow-team = []
-blue-team = []
