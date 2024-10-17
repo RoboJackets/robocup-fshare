@@ -52,6 +52,55 @@ impl Into<bool> for ShootMode {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+/// The `mode` the robot should be in
+/// 
+/// In general, this field should pretty much always be set to Default.  However, I created
+/// this field so we can tell the robots to conduct specific testing procedures (or perhaps
+/// special moves) based on the flags sent from the base station
+pub enum Mode {
+    /// Default execution mode.  In default execution mode, the robot continually
+    /// runs the normal motion control update loop and should behave as one would expect
+    /// our robots to perform
+    Default = 0,
+    /// Test the IMU on the robot
+    ImuTest = 1,
+    /// Benchmark the radio's receive functionality
+    ReceiveBenchmark = 2,
+    /// Benchmark the radio's send functionality
+    SendBenchmark = 3,
+    /// Program the kicker with kick-on-breakbeam
+    ProgramKickOnBreakbeam = 4,
+    /// Program the kicker with normal-operation
+    ProgramKicker = 5,
+    /// Test the kicker
+    KickerTest = 6,
+    /// Test the FPGA Movement
+    FpgaTest = 7,
+}
+
+impl Default for Mode {
+    fn default() -> Self {
+        Self::Default
+    }
+}
+
+impl From<u8> for Mode {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => Self::Default,
+            1 => Self::ImuTest,
+            2 => Self::ReceiveBenchmark,
+            3 => Self::SendBenchmark,
+            4 => Self::ProgramKickOnBreakbeam,
+            5 => Self::ProgramKicker,
+            6 => Self::KickerTest,
+            7 => Self::FpgaTest,
+            _ => Self::Default,
+        }
+    }
+}
+
 /// The Control Message is Sent from the Base Station to the Robots.
 ///
 /// The Packed Format of this message is as follows:
@@ -76,7 +125,7 @@ impl Into<bool> for ShootMode {
 /// +---------+---------+---------+---------+---------+---------+---------+---------+
 /// | kick_strength                                                                 |
 /// +---------+---------+---------+---------+---------+---------+---------+---------+
-/// | role              | unused                                                    |
+/// | role              | mode                                                      |
 /// +---------+---------+---------+---------+---------+---------+---------+---------+
 ///
 /// Size = 80 Bits = 10 Bytes
@@ -105,6 +154,8 @@ pub struct ControlMessage {
     pub kick_strength: u8,
     /// Role of This Robot (TODO: Finish Docs)
     pub role: u8,
+    /// The mode of the robot
+    pub mode: Mode,
 }
 
 impl ControlMessage {
@@ -143,7 +194,7 @@ impl Packable for ControlMessage {
         buffer[6] = bytes[1];
         buffer[7] = self.dribbler_speed.to_le_bytes()[0];
         buffer[8] = self.kick_strength;
-        buffer[9] = (self.role & 0b11) << 6;
+        buffer[9] = (self.role & 0b11) << 6 | (self.mode as u8);
         Ok(())
     }
 
@@ -174,7 +225,8 @@ impl Packable for ControlMessage {
             body_w: i16::from_le_bytes(data[5..=6].try_into().unwrap()),
             dribbler_speed: i8::from_le_bytes([data[7]]),
             kick_strength: data[8],
-            role: (data[6] & (0b11 << 6)) >> 6,
+            role: (data[9] & (0b11 << 6)) >> 6,
+            mode: (data[9] & 0b0011_1111).into(),
         })
     }
 }
@@ -201,6 +253,8 @@ pub struct ControlMessageBuilder {
     pub kick_strength: Option<u8>,
     /// The role the robot is playing
     pub role: Option<u8>,
+    /// The mode the robot is in
+    pub mode: Option<Mode>,
 }
 
 impl ControlMessageBuilder {
@@ -217,6 +271,7 @@ impl ControlMessageBuilder {
             dribbler_speed: None,
             kick_strength: None,
             role: None,
+            mode: None,
         }
     }
 
@@ -280,6 +335,12 @@ impl ControlMessageBuilder {
         self
     }
 
+    /// Assign a specific mode for the robot in the control message
+    pub fn mode(mut self, mode: Mode) -> Self {
+        self.mode = Some(mode);
+        self
+    }
+
     /// Build the control message from the assigned fields.
     pub fn build(self) -> ControlMessage {
         let team = match self.team {
@@ -332,6 +393,8 @@ impl ControlMessageBuilder {
             None => 0,
         };
 
+        let mode = self.mode.unwrap_or_default();
+
         ControlMessage {
             team,
             robot_id,
@@ -343,6 +406,7 @@ impl ControlMessageBuilder {
             dribbler_speed,
             kick_strength,
             role,
+            mode,
         }
     }
 }
@@ -368,6 +432,7 @@ mod tests {
             dribbler_speed: 0,
             kick_strength: 0,
             role: 0,
+            mode: Mode::default(),
         };
 
         assert_eq!(expected, control_message);
@@ -401,6 +466,7 @@ mod tests {
             dribbler_speed: -5,
             kick_strength: 3,
             role: 1,
+            mode: Mode::default(),
         };
 
         assert_eq!(expected, control_message);
@@ -432,7 +498,7 @@ mod tests {
     /// body_y (lsb)--------------------------------          |
     /// body_y (msb)-------------------------------------------
     ///
-    ///     11111111 | 01111111 | 11111011 | 00000011 | 01_000000
+    ///     11111111 | 01111111 | 11111011 | 00000011 | 01_000111
     ///         ^          ^          ^          ^       ^    ^
     ///         |          |          |          |       |    |
     /// body_w (lsb)       |          |          |       |    |
@@ -440,7 +506,7 @@ mod tests {
     /// dribbler_speed (2s Comp)-------          |       |    |
     /// kick_strength-----------------------------       |    |
     /// role----------------------------------------------    |
-    /// unused-------------------------------------------------
+    /// mode---------------------------------------------------
     #[test]
     fn test_pack() {
         let control_message = ControlMessageBuilder::new()
@@ -454,6 +520,7 @@ mod tests {
             .dribbler_speed(-5)
             .kick_strength(3)
             .role(1)
+            .mode(Mode::FpgaTest)
             .build();
 
         let mut packed_data = [0u8; CONTROL_MESSAGE_SIZE];
@@ -469,7 +536,7 @@ mod tests {
         assert_eq!(packed_data[6], 0b01111111);
         assert_eq!(packed_data[7], 0b11111011);
         assert_eq!(packed_data[8], 0b00000011);
-        assert_eq!(packed_data[9], 0b01_000000);
+        assert_eq!(packed_data[9], 0b01_000111);
     }
 
     /// The Control Message from:
@@ -485,7 +552,7 @@ mod tests {
     /// body_y (lsb)--------------------------------          |
     /// body_y (msb)-------------------------------------------
     ///
-    ///     11111111 | 01111111 | 11111011 | 00000011 | 01_000000
+    ///     11111111 | 01111111 | 11111011 | 00000011 | 01_000010
     ///         ^          ^          ^          ^       ^    ^
     ///         |          |          |          |       |    |
     /// body_w (lsb)       |          |          |       |    |
@@ -506,6 +573,7 @@ mod tests {
     ///     body_w: 45.0 (32_767),
     ///     dribbler_speed: -5,
     ///     role: 1,
+    ///     mode: Mode::ReceiveBenchmark,
     /// }
     #[test]
     fn test_unpack() {
@@ -519,7 +587,7 @@ mod tests {
             0b01111111,
             0b11111011,
             0b00000011,
-            0b01_000000,
+            0b01_000010,
         ];
 
         let control_message = ControlMessage::unpack(&data).unwrap();
@@ -535,6 +603,7 @@ mod tests {
             dribbler_speed: -5,
             kick_strength: 3,
             role: 1,
+            mode: Mode::ReceiveBenchmark,
         };
 
         assert_eq!(expected, control_message);
