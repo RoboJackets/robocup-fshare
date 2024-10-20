@@ -6,6 +6,25 @@
 
 namespace rtp {
 
+/**
+* Special enum to dictate the special mode the robot should be in.
+*
+* In general, software should never be using anything except Default unless
+* firmware creates special states for software, however, I included this in
+* the C++ section to make sure the commands in software are still parallel
+* to the commands in firmware.
+*/
+enum ControlMode {
+    DEFAULT = 0,
+    IMU_TEST = 1,
+    RECEIVE_BENCHMARK = 2,
+    SEND_BENCHMARK = 3,
+    PROGRAM_KICK_ON_BREAKBEAM = 4,
+    PROGRAM_KICKER = 5,
+    KICKER_TEST = 6,
+    FPGA_TEST = 7,
+}
+
 struct ControlMessage {
     static constexpr float VELOCITY_SCALE_FACTOR = 1000.0f;
 
