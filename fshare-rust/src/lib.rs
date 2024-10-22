@@ -20,6 +20,8 @@ pub mod kicker_testing;
 
 pub mod radio_benchmarks;
 
+pub mod control_test_message;
+
 pub mod radio_addresses;
 pub use radio_addresses::BASE_STATION_ADDRESSES;
 pub use radio_addresses::ROBOT_RADIO_ADDRESSES;
