@@ -9,7 +9,7 @@
 use ncomm_utils::packing::{Packable, PackingError};
 
 /// The size of a control update test message
-pub const CONTROL_TEST_MESSAGE_SIZE: usize = 28;
+pub const CONTROL_TEST_MESSAGE_SIZE: usize = 32;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 /// A message sent back from the robot containing all relevant
@@ -23,6 +23,8 @@ pub struct ControlTestMessage {
     pub accel_y: f32,
     /// The encoder velocities obtained from the FPGA
     pub motor_encoders: [f32; 4],
+    /// The time from the last control test message to this message (us)
+    pub delta: u32,
 }
 
 impl Packable for ControlTestMessage {
@@ -42,6 +44,7 @@ impl Packable for ControlTestMessage {
         buffer[16..20].copy_from_slice(&self.motor_encoders[1].to_le_bytes());
         buffer[20..24].copy_from_slice(&self.motor_encoders[2].to_le_bytes());
         buffer[24..28].copy_from_slice(&self.motor_encoders[3].to_le_bytes());
+        buffer[28..32].copy_from_slice(&self.delta.to_le_bytes());
 
         Ok(())
     }
@@ -61,6 +64,7 @@ impl Packable for ControlTestMessage {
                 f32::from_le_bytes(data[20..24].try_into().unwrap()),
                 f32::from_le_bytes(data[24..28].try_into().unwrap()),
             ],
+            delta: u32::from_le_bytes(data[28..32].try_into().unwrap()),
         })
     }
 }
@@ -77,6 +81,7 @@ mod tests {
             accel_x: -1.5,
             accel_y: 2.2,
             motor_encoders: [0.7, 0.2, 0.2, 0.7],
+            delta: 100,
         };
 
         let mut buffer = [0u8; CONTROL_TEST_MESSAGE_SIZE];
