@@ -16,6 +16,10 @@ pub mod imu_test_message;
 
 pub mod kicker_program_message;
 
+pub mod kicker_testing;
+
+pub mod radio_benchmarks;
+
 pub mod radio_addresses;
 pub use radio_addresses::BASE_STATION_ADDRESSES;
 pub use radio_addresses::ROBOT_RADIO_ADDRESSES;
